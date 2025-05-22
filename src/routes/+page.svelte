@@ -3,8 +3,9 @@
   import WorldMap from '$lib/WorldMap.svelte';
   import ScatterPlot from '$lib/ScatterPlot.svelte';
   import BarChart from '$lib/BarChart.svelte';
-  import { onMount } from 'svelte';
+
   import * as d3 from 'd3';
+  import { onMount } from 'svelte';
 
   let data = [];
 
@@ -23,53 +24,61 @@
       Rent_USD: +d.Rent_USD,
       Visa_Fee_USD: +d.Visa_Fee_USD,
       Insurance_USD: +d.Insurance_USD,
-      Exchange_Rate: +d.Exchange_Rate
+      Exchange_Rate: +d.Exchange_Rate,
+      lat: +d.lat,
+      lng: +d.lng
     }));
-    
+
     data = parsed;
   });
 </script>
 
-<div class="container mx-auto px-4 py-8 space-y-12">
-  <h1 class="text-4xl font-bold text-center mb-8">🌍 Educação pelo Mundo</h1>
-  <p class="text-center text-lg mb-12">
-    Explore os custos de estudar em diferentes países e programas acadêmicos.
-    Compare taxas, custo de vida e veja insights visuais!
-  </p>
+{#if data.length > 0}
+  <div class="flex flex-col">
 
-  {#if data.length > 0}
-    <section>
-      <h2 class="text-2xl font-semibold mb-4">Boxplot: Custo Total por Nível</h2>
-      <Boxplot {data} />
-      <p class="text-sm text-gray-500 mt-2">
-        Análise das diferenças de custo total considerando mensalidades, aluguel e taxas.
-      </p>
+    <!-- Boxplot Section -->
+    <section class="h-screen flex items-center justify-center bg-gradient-to-br from-green-100 to-green-300">
+      <div class="w-full max-w-6xl">
+        <h1 class="text-4xl font-bold mb-6 text-center">
+          Boxplot: Custo Total por Nível
+        </h1>
+        <Boxplot {data} />
+      </div>
     </section>
 
-    <section>
-      <h2 class="text-2xl font-semibold mb-4">Distribuição Global: Onde Estudar?</h2>
-      <WorldMap {data} />
-      <p class="text-sm text-gray-500 mt-2">
-        Veja a distribuição geográfica das universidades no mundo.
-      </p>
+    <!-- World Map Section -->
+    <section class="h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-300">
+      <div class="w-full max-w-6xl">
+        <h1 class="text-4xl font-bold mb-6 text-center">
+          Mapa Mundial: Localização das Universidades
+        </h1>
+        <WorldMap {data} />
+      </div>
     </section>
 
-    <section>
-      <h2 class="text-2xl font-semibold mb-4">Relação entre Custo de Vida e Mensalidade</h2>
-      <ScatterPlot {data} />
-      <p class="text-sm text-gray-500 mt-2">
-        Relação entre custo de vida no país e as mensalidades cobradas.
-      </p>
+    <!-- Scatter Plot Section -->
+    <section class="h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 to-purple-300">
+      <div class="w-full max-w-6xl">
+        <h1 class="text-4xl font-bold mb-6 text-center">
+          Relação: Custo de Vida x Anuidade
+        </h1>
+        <ScatterPlot {data} />
+      </div>
     </section>
 
-    <section>
-      <h2 class="text-2xl font-semibold mb-4">Top 10 Programas Mais Caros</h2>
-      <BarChart {data} />
-      <p class="text-sm text-gray-500 mt-2">
-        Ranking dos programas mais caros considerando todas as taxas.
-      </p>
+    <!-- Bar Chart Section -->
+    <section class="h-screen flex items-center justify-center bg-gradient-to-br from-yellow-100 to-yellow-300">
+      <div class="w-full max-w-6xl">
+        <h1 class="text-4xl font-bold mb-6 text-center">
+          Top 10 Programas Mais Caros
+        </h1>
+        <BarChart {data} />
+      </div>
     </section>
-  {:else}
-    <p class="text-center text-gray-600">Carregando dados...</p>
-  {/if}
-</div>
+
+  </div>
+{:else}
+  <div class="h-screen flex items-center justify-center">
+    <p class="text-xl">Carregando dados...</p>
+  </div>
+{/if}

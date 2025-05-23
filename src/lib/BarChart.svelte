@@ -5,17 +5,15 @@
   export let data = [];
   let container;
 
-  onMount(() => {
-    draw();
-  });
-
   function draw() {
+    if (!data.length) return;
+
     const margin = { top: 20, right: 30, bottom: 100, left: 80 },
-          width = 600 - margin.left - margin.right,
-          height = 400 - margin.top - margin.bottom;
+      width = 600 - margin.left - margin.right,
+      height = 400 - margin.top - margin.bottom;
 
     const svg = d3.select(container)
-      .html('')
+      .html('')  // limpa antes de desenhar
       .append('svg')
       .attr('width', width + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
@@ -24,7 +22,11 @@
 
     const processed = data.map(d => ({
       program: `${d.Program} (${d.City})`,
-      cost: d.Tuition_USD + d.Rent_USD * 12 + d.Visa_Fee_USD + d.Insurance_USD
+      cost:
+        Number(d.Tuition_USD) +
+        Number(d.Rent_USD) * 12 +
+        Number(d.Visa_Fee_USD) +
+        Number(d.Insurance_USD)
     }));
 
     const top10 = processed.sort((a, b) => b.cost - a.cost).slice(0, 10);
@@ -47,7 +49,7 @@
 
     svg.append('g').call(d3.axisLeft(y));
 
-    svg.selectAll('bars')
+    svg.selectAll('rect')
       .data(top10)
       .enter()
       .append('rect')
@@ -56,6 +58,14 @@
       .attr('width', x.bandwidth())
       .attr('height', d => height - y(d.cost))
       .attr('fill', '#ffa500');
+  }
+
+  onMount(() => {
+    draw();
+  });
+
+  $: if (data.length) {
+    draw();
   }
 </script>
 

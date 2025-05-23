@@ -27,7 +27,7 @@ body {
 .right {
   flex: 1.5;
   padding: 2rem;
-  border-left: 2px dashed #ccc;
+  border-left: 2px #ccc;
 }
 
 .right h2 {
@@ -97,4 +97,21 @@ p {
   max-width: 100%;
   height: auto;
   opacity: 0.9;
+}
+
+.vertical-line {
+  position: fixed; /* ou absolute se o container tiver position: relative */
+  top: 0;
+  bottom: 0;
+  left: 41.3%;
+  transform: translateX(-50%);
+  width: 2px; /* ou outro valor, dependendo da espessura desejada */
+  background: repeating-linear-gradient(
+    to bottom,
+    #ccc,
+    #ccc 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  z-index: -1; /* para não sobrepor os conteúdos */
 }

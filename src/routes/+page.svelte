@@ -223,19 +223,104 @@
 </div>
 
 <style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f9f9fb;
+    color: #333;
+    margin: 0;
+    padding: 0;
+  }
+
+  .container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 100vh;
+    padding: 4rem 6%;
+    gap: 2rem;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .left, .right {
+    flex: 1;
+    max-width: 40%;
+  }
+
+  .title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.3;
+    animation: fadeInUp 0.8s ease-out both;
+  }
+
+  .title .line1, .title .line2, .title .line3 {
+    display: block;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+    animation: fadeIn 0.6s ease-out both;
+  }
+
+  p {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  .emphasized {
+    font-weight: bold;
+    font-style: italic;
+    color: #555;
+    margin-top: 1.5rem;
+  }
+
+  .illustration-below {
+    width: 100%;
+    max-width: 100%;
+  }
+
   .scroll-step {
-    min-height: 100vh; /* espaço para scroll */
-    padding: 2rem;
-    box-sizing: border-box;
-  }
-
-  .hidden {
     opacity: 0.2;
-    transition: opacity 0.5s ease;
+    transition: opacity 0.8s ease, transform 0.8s ease;
+    transform: translateY(20px);
   }
 
-  .visible {
+  .scroll-step.visible {
     opacity: 1;
-    transition: opacity 0.5s ease;
+    transform: translateY(0);
+  }
+
+  .vertical-line {
+    position: fixed;
+    top: 0;
+    left: 45%;
+    width: 4px;
+    height: 100vh;
+    background: linear-gradient(to bottom, #ccc, transparent);
+    z-index: -1;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 </style>

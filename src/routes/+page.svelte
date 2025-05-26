@@ -81,8 +81,8 @@
     data-index="1"
   >
     <h1 class="title">
-      <span class="line1">Gráfico em Mapa:</span>
-      <span class="line2">Comparando os Países</span>
+      <span class="line1">Gráfico 4:</span>
+      <span class="line2">Comparando</span>
       <p>
         Lorem ipsum dolor sit amet. Aut nihil inventore rem magni voluptatem ut iste nesciunt cum dolorem praesentium qui porro
         dolor ea magni illum. Sit eveniet voluptas ut eligendi tempora aut nesciunt harum.
@@ -103,17 +103,12 @@
     <h2>Resultados</h2>
     <p>GRÁFICO!</p>
 
-    {#if educationData.length}
-      <BarChart data={educationData} />
-    {:else}
-      <p>Carregando dados...</p>
-    {/if}
-
     <p class="emphasized">LOL</p>
+
+    <WorldMap data={educationData}/>
 
   </div>
 </div>
-
 <!------------------------------------------------ Step 2 -------------------------------------------------------->
 <div class="container">
   <div
@@ -193,8 +188,8 @@
     data-index="4"
   >
     <h1 class="title">
-      <span class="line1">Gráfico 4:</span>
-      <span class="line2">Comparando</span>
+      <span class="line1">Gráfico em Mapa:</span>
+      <span class="line2">Comparando os Países</span>
       <p>
         Lorem ipsum dolor sit amet. Aut nihil inventore rem magni voluptatem ut iste nesciunt cum dolorem praesentium qui porro
         dolor ea magni illum. Sit eveniet voluptas ut eligendi tempora aut nesciunt harum.
@@ -215,9 +210,13 @@
     <h2>Resultados</h2>
     <p>GRÁFICO!</p>
 
-    <p class="emphasized">LOL</p>
+    {#if educationData.length}
+      <BarChart data={educationData} />
+    {:else}
+      <p>Carregando dados...</p>
+    {/if}
 
-    <WorldMap data={educationData}/>
+    <p class="emphasized">LOL</p>
 
   </div>
 </div>

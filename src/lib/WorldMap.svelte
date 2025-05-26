@@ -1,47 +1,58 @@
-<script lang="ts">
-  import * as d3 from 'd3';
+<script>
   import { onMount } from 'svelte';
+  import * as d3 from 'd3';
 
-  export let data = [];
-  let container;
+  let map;
 
-  onMount(() => {
-    draw();
+  onMount(async () => {
+    if (typeof window === 'undefined') return;
+
+    const L = await import('leaflet');
+
+    const geoData = await (await fetch('/countries.geojson')).json();
+    const costData = await (await fetch('/education.json')).json();
+
+    const costByCountry = {};
+    costData.forEach(d => {
+      costByCountry[d.Country.toLowerCase()] = +d.Total_Cost_USD;
+    });
+
+    const values = Object.values(costByCountry);
+    const colorScale = d3.scaleQuantize()
+      .domain([d3.min(values), d3.max(values)])
+      .range(d3.schemeBlues[7]);
+
+    map = L.map('map').setView([20, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.geoJSON(geoData, {
+      style: feature => {
+        const name = feature.properties.name.toLowerCase();
+        const cost = costByCountry[name];
+        return {
+          fillColor: cost ? colorScale(cost) : '#ccc',
+          color: 'white',
+          weight: 1,
+          fillOpacity: 0.7
+        };
+      },
+      onEachFeature: (feature, layer) => {
+        const name = feature.properties.name;
+        const cost = costByCountry[name.toLowerCase()];
+        layer.bindTooltip(`${name}<br>Custo: ${cost ? `$${cost.toLocaleString()}` : 'N/A'}`);
+      }
+    }).addTo(map);
   });
-
-  async function draw() {
-    const width = 800, height = 400;
-
-    const projection = d3.geoNaturalEarth1().scale(150).translate([width / 2, height / 2]);
-    const path = d3.geoPath().projection(projection);
-
-    const svg = d3.select(container)
-      .html('')
-      .append('svg')
-      .attr('width', width)
-      .attr('height', height);
-
-    const world = await d3.json('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson');
-
-    svg.append('g')
-      .selectAll('path')
-      .data(world.features)
-      .enter()
-      .append('path')
-      .attr('fill', '#d3d3d3')
-      .attr('d', path)
-      .style('stroke', 'none');
-
-    svg.selectAll('circle')
-      .data(data)
-      .enter()
-      .append('circle')
-      .attr('cx', d => projection([+d.lng, +d.lat])[0])
-      .attr('cy', d => projection([+d.lng, +d.lat])[1])
-      .attr('r', 3)
-      .attr('fill', '#ff5733')
-      .attr('opacity', 0.7);
-  }
 </script>
 
-<div bind:this={container} class="w-full overflow-x-auto"></div>
+<style>
+  #map {
+    height: 600px;
+    width: 100%;
+    border-radius: 12px;
+  }
+</style>
+
+<div id="map"></div>

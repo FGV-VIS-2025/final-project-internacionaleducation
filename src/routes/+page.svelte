@@ -40,6 +40,8 @@
       });
   }
 
+  $: showLine = activeStep !== 1;
+
   onMount(() => {
     async function loadData() {
       const data = await fetchEducationData('/education.json');
@@ -65,8 +67,9 @@
   });
 </script>
 
-<div class="vertical-line"></div>
-
+{#if showLine}
+  <div class="vertical-line"></div>
+{/if}
 
 <!------------------------------------------------ Step 0 -------------------------------------------------------->
 <div class="container">

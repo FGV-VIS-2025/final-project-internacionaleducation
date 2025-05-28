@@ -9,12 +9,31 @@
     const geoData = await (await fetch('/countries.geojson')).json();
     const costData = await (await fetch('/education.json')).json();
 
-    const costByCountry = {};
+    const countryCosts = {};
+
     costData.forEach(d => {
-      costByCountry[d.Country.toLowerCase()] = +d.Total_Cost_USD;
+      const duration = +d.Duration_Years || 0;
+      const tuition = +d.Tuition_USD || 0;
+      const rent = (+d.Rent_USD || 0) * 12 * duration;
+      const visa = +d.Visa_Fee_USD || 0;
+      const insurance = +d.Insurance_USD || 0;
+      const totalCost = tuition + rent + visa + insurance;
+
+      const country = d.Country.toLowerCase();
+
+      if (!countryCosts[country]) {
+        countryCosts[country] = [];
+      }
+      countryCosts[country].push(totalCost);
     });
 
-    const values = Object.values(costByCountry);
+    // calcular média por país
+    const avgCostByCountry = {};
+    for (const [country, costs] of Object.entries(countryCosts)) {
+      avgCostByCountry[country] = d3.mean(costs);
+    }
+
+    const values = Object.values(avgCostByCountry);
     const colorScale = d3.scaleQuantize()
       .domain([d3.min(values), d3.max(values)])
       .range(d3.schemeBlues[7]);
@@ -23,7 +42,7 @@
       .append('svg')
       .attr('width', '100%')
       .attr('height', '100%')
-      .attr('viewBox', '0 0 960 500') // escala adaptável
+      .attr('viewBox', '0 0 960 500')
       .style('border-radius', '12px');
 
     const projection = d3.geoNaturalEarth1().scale(160).translate([480, 250]);
@@ -36,7 +55,7 @@
       .attr('d', path)
       .attr('fill', d => {
         const name = d.properties.name.toLowerCase();
-        const value = costByCountry[name];
+        const value = avgCostByCountry[name];
         return value ? colorScale(value) : '#ccc';
       })
       .attr('stroke', '#fff')
@@ -54,8 +73,8 @@
       .append('title')
       .text(d => {
         const name = d.properties.name;
-        const value = costByCountry[name.toLowerCase()];
-        return `${name}\nCusto total: ${value ? `$${value.toLocaleString()}` : 'N/A'}`;
+        const value = avgCostByCountry[name.toLowerCase()];
+        return `${name}\nCusto médio total: ${value ? `$${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : 'N/A'}`;
       });
   });
 </script>

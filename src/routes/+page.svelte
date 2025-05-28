@@ -6,10 +6,18 @@
   import ScatterFun from  '../lib/ScatterFun.svelte';
   import WorldMap from  '../lib/WorldMap.svelte';
   import WorldFun from  '../lib/WorldFun.svelte';
+  import MapForScatter from '../lib/MapForScatter.svelte';
+
+  let mainSelectedPoint = [0, 0];
+
+  function handleSelectPoint(event) {
+    const { lat, lng } = event.detail;
+    mainSelectedPoint = [lat, lng];
+  }
 
   let activeStep = 0;
   let educationData = [];
-  let bachelorDataWithCost = [];
+  let dataWithCost = [];
 
   // Função para buscar dados do JSON
   async function fetchEducationData(url) {
@@ -18,10 +26,9 @@
     return data;
   }
 
-  // Função para calcular custo total filtrando bacharelados
-  function calculateBachelorCosts(data) {
+  // Função para calcular custo total dos 4 anos de faculdade
+  function calculateCosts(data) {
     return data
-      .filter(d => d.Level === "Bacharel")
       .map(d => {
         const tuition = Number(d.Tuition_USD);
         const visaFee = Number(d.Visa_Fee_USD);
@@ -35,16 +42,19 @@
           City: d.City,
           University: d.University,
           Program: d.Program,
+          lat: d.lat,
+          lng: d.lng,
           total_cost
         };
       });
   }
 
+
   onMount(() => {
     async function loadData() {
       const data = await fetchEducationData('/education.json');
       educationData = data;
-      bachelorDataWithCost = calculateBachelorCosts(data);
+      dataWithCost = calculateCosts(data);
     }
 
     loadData();
@@ -204,9 +214,9 @@
     <h2>Resultados</h2>
     <p>GRÁFICO!</p>
 
-    <p class="emphasized">LOL</p>
+    <MapForScatter on:selectpoint={handleSelectPoint} />
 
-    <ScatterPlot data={educationData}/>
+    <ScatterPlot data={dataWithCost}/>
 
   </div>
 </div>

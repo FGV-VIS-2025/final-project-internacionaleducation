@@ -18,7 +18,7 @@
   });
 
   function draw() {
-    const width = 800, height = 400;
+    const width = 600, height = 600;
 
     const svg = d3.select(container)
       .html('')
@@ -26,7 +26,8 @@
       .attr('width', width)
       .attr('height', height)
       .style('border', '1px solid #ccc')
-      .style('cursor', 'grab');
+      .style('cursor', 'grab')
+      .style('user-select', 'none');
 
     const tooltip = d3.select(container)
       .append('div')
@@ -47,6 +48,7 @@
     const mapGroup = g.append('g');
     const pointsGroup = g.append('g');
 
+    // Mapa com zoom ao clicar no país
     mapGroup.selectAll('path')
       .data(world.features)
       .enter()
@@ -54,8 +56,22 @@
       .attr('fill', '#d3d3d3')
       .attr('stroke', '#999')
       .attr('stroke-width', 0.5)
-      .attr('d', path);
+      .attr('d', path)
+      .on('click', (event, d) => {
+        const centroid = d3.geoCentroid(d);
+        const [x, y] = projection(centroid);
+        const scale = 4;
+        const translate = [width / 2 - scale * x, height / 2 - scale * y];
 
+        svg.transition()
+          .duration(750)
+          .call(
+            zoom.transform,
+            d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
+          );
+      });
+
+    // Pontos das universidades
     const circles = pointsGroup.selectAll('circle')
       .data(data)
       .enter()
@@ -67,23 +83,22 @@
       .attr('opacity', 0.8)
       .style('cursor', 'pointer')
       .on('mousemove', (event, d) => {
+        if (clicked) return; // não atualiza tooltip se clicou pra detalhar
         const [x, y] = d3.pointer(event, container);
-        if (!clicked) {
-            tooltip
-            .html(`
+        tooltip
+          .html(`
             <strong>${d.University}</strong><br/>
             ${d.City}, ${d.Country}<br/>
-            `)
-            .style('left', `${x + 15}px`)
-            .style('top', `${y + 15}px`)
-            .style('opacity', 1);
-        }
-        })
+          `)
+          .style('left', `${x + 15}px`)
+          .style('top', `${y + 15}px`)
+          .style('opacity', 1);
+      })
       .on('click', (event, d) => {
-        const [x, y] = d3.pointer(event, container);
         clicked = true;
+        const [x, y] = d3.pointer(event, container);
         tooltip
-            .html(`
+          .html(`
             <strong>${d.University}</strong><br/>
             ${d.City}, ${d.Country}<br/>
             ${d.Program} (${d.Level})<br/>
@@ -92,16 +107,18 @@
             Aluguel: $${d.Rent_USD}<br/>
             Seguro: $${d.Insurance_USD}<br/>
             Câmbio: ${d.Exchange_Rate}
-            `)
-            .style('left', `${x + 15}px`)
-            .style('top', `${y + 15}px`)
-            .style('opacity', 1);
-        })
+          `)
+          .style('left', `${x + 15}px`)
+          .style('top', `${y + 15}px`)
+          .style('opacity', 1);
+      })
       .on('mouseout', () => {
-        clicked = false;
-        tooltip.style('opacity', 0);
+        if (!clicked) {
+          tooltip.style('opacity', 0);
+        }
       });
 
+    // Zoom control
     const zoom = d3.zoom()
       .scaleExtent([1, 8])
       .on('zoom', event => {
@@ -110,6 +127,15 @@
       });
 
     svg.call(zoom);
+
+    // Se clicar fora dos círculos, fecha o tooltip detalhado
+    d3.select(container).on('click', (event) => {
+      // Se clicou no container mas NÃO em um círculo
+      if (event.target.tagName !== 'circle') {
+        clicked = false;
+        tooltip.style('opacity', 0);
+      }
+    });
   }
 </script>
 
@@ -120,4 +146,4 @@
   }
 </style>
 
-<div bind:this={container} class="w-full overflow-x-auto" style="position: relative;"></div>
+<div bind:this={container} style="position: relative;" class="w-full overflow-x-auto"></div>

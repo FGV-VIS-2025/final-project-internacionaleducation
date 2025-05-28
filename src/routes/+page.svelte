@@ -49,6 +49,7 @@
       });
   }
 
+  $: showLine = activeStep !== 1;
 
   onMount(() => {
     async function loadData() {
@@ -75,8 +76,9 @@
   });
 </script>
 
-<div class="vertical-line"></div>
-
+{#if showLine}
+  <div class="vertical-line"></div>
+{/if}
 
 <!------------------------------------------------ Step 0 -------------------------------------------------------->
 <div class="container">
@@ -112,38 +114,14 @@
 
 
 <!------------------------------------------------ Step 1 -------------------------------------------------------->
-<div class="container">
-  <div
-    class="left scroll-step {activeStep >= 1 ? 'visible' : 'hidden'}"
-    data-index="1"
-  >
-    <h1 class="title">
-      <span class="line1">Gráfico 4:</span>
-      <span class="line2">Comparando</span>
-      <p>
-        Lorem ipsum dolor sit amet. Aut nihil inventore rem magni voluptatem ut iste nesciunt cum dolorem praesentium qui porro
-        dolor ea magni illum. Sit eveniet voluptas ut eligendi tempora aut nesciunt harum.
-        Sed blanditiis voluptates et blanditiis culpa ad eveniet excepturi ea Quis voluptatem ex consequatur quia. Eum officia
-        mollitia et quam explicabo in quia unde sed ipsam harum et earum explicabo. Ut dolor commodi in cumque impedit ab libero
-        porro et perspiciatis molestiae.
-        Sit unde tempore ex dicta magnam in temporibus dignissimos. Sit iure optio aut repellat pariatur et fuga itaque eum ullam
-        earum hic nemo iste. Et quia dolore sit quasi eligendi nam deserunt illum eum iure tenetur. Ut totam ratione est quae
-        voluptates et quae animi.
-      </p>
-    </h1>
-  </div>
-
-  <div
-    class="right scroll-step {activeStep >= 1 ? 'visible' : 'hidden'}"
-    data-index="1"
-  >
-    <h2>Resultados</h2>
-    <p>GRÁFICO!</p>
-
-    <p class="emphasized">LOL</p>
-
-    <WorldMap data={educationData}/>
-
+<div class="container full-width scroll-step {activeStep >= 1 ? 'visible' : 'hidden'}" data-index="1">
+  <div class="full-map-section">
+    <h2>Mapa Global: Custo da Educação</h2>
+    <p class="map-description">
+      Explore visualmente como os custos de educação variam entre os países.
+    </p>
+    
+    <WorldMap data={educationData} />
   </div>
 </div>
 <!------------------------------------------------ Step 2 -------------------------------------------------------->
@@ -361,5 +339,38 @@
     to {
       opacity: 1;
     }
+  }
+
+  .full-width {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+  }
+
+  .full-map-section {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 2rem;
+    text-align: center;
+  }
+
+  .full-map-section h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .map-description {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 2rem;
+  }
+
+  .full-map-section :global(svg),
+  .full-map-section :global(canvas),
+  .full-map-section :global(div) {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 80vh;
   }
 </style>

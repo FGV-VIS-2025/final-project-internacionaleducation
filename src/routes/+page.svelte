@@ -3,40 +3,68 @@
   import BarChart from '../lib/BarChart.svelte';
   import Boxplot from  '../lib/Boxplot.svelte';
   import ScatterPlot from  '../lib/ScatterPlot.svelte';
+  import ScatterFun from  '../lib/ScatterFun.svelte';
   import WorldMap from  '../lib/WorldMap.svelte';
+  import WorldFun from  '../lib/WorldFun.svelte';
 
   let activeStep = 0;
-
   let educationData = [];
+  let bachelorDataWithCost = [];
+
+  // Função para buscar dados do JSON
+  async function fetchEducationData(url) {
+    const res = await fetch(url);
+    const data = await res.json();
+    return data;
+  }
+
+  // Função para calcular custo total filtrando bacharelados
+  function calculateBachelorCosts(data) {
+    return data
+      .filter(d => d.Level === "Bacharel")
+      .map(d => {
+        const tuition = Number(d.Tuition_USD);
+        const visaFee = Number(d.Visa_Fee_USD);
+        const rent = Number(d.Rent_USD);
+        const durationYears = Number(d.Duration_Years);
+
+        const total_cost = tuition + visaFee + rent * 12 * durationYears;
+
+        return {
+          Country: d.Country,
+          City: d.City,
+          University: d.University,
+          Program: d.Program,
+          total_cost
+        };
+      });
+  }
 
   onMount(() => {
-    // carregar dados async
-    (async () => {
-      const res = await fetch('/education.json');
-      educationData = await res.json();
-    })();
+    async function loadData() {
+      const data = await fetchEducationData('/education.json');
+      educationData = data;
+      bachelorDataWithCost = calculateBachelorCosts(data);
+    }
 
-    // configurar observer
+    loadData();
+
     const steps = document.querySelectorAll('.scroll-step');
-    const observer = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const index = +entry.target.dataset.index;
-            if (index > activeStep) {
-              activeStep = index;
-            }
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const index = +entry.target.dataset.index;
+          if (index > activeStep) activeStep = index;
+        }
+      });
+    }, { threshold: 0.5 });
 
     steps.forEach(step => observer.observe(step));
 
     return () => observer.disconnect();
   });
 </script>
+
 
 <!------------------------------------------------ Step 0 -------------------------------------------------------->
 <div class="container">
@@ -118,8 +146,8 @@
     data-index="2"
   >
     <h1 class="title">
-      <span class="line1">Gráfico 2:</span>
-      <span class="line2">Bertinho</span>
+      <span class="line1">Gráfico em Mapa:</span>
+      <span class="line2">Comparando os Países</span>
       <p>
         Lorem ipsum dolor sit amet. Aut nihil inventore rem magni voluptatem ut iste nesciunt cum dolorem praesentium qui porro
         dolor ea magni illum. Sit eveniet voluptas ut eligendi tempora aut nesciunt harum.
@@ -138,12 +166,15 @@
     data-index="2"
   >
     <h2>Resultados</h2>
-    <p>GRÁFICO!</p>
 
-    <Boxplot data={educationData}/>
+    {#if educationData.length}
+      <!-- Passa os dados transformados para WorldFun -->
+      <WorldFun data={educationData} />
+    {:else}
+      <p>Carregando dados...</p>
+    {/if}
 
     <p class="emphasized">LOL</p>
-
   </div>
 </div>
 

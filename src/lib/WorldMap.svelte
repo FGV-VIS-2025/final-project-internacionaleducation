@@ -1,12 +1,13 @@
 <script>
   import { onMount } from 'svelte';
-  import L from 'leaflet';
   import * as d3 from 'd3';
 
   let map;
   let mapContainer;
 
   onMount(async () => {
+    const L = await import('leaflet');
+
     const [geoData, costData] = await Promise.all([
       fetch('/countries.geojson').then(r => r.json()),
       fetch('/education.json').then(r => r.json())
@@ -46,7 +47,6 @@
     const min = Math.min(...values);
     const max = Math.max(...values);
 
-    // Escala de cores D3
     const colorScale = d3.scaleLinear()
       .domain([min, max])
       .range(['#edf8fb', '#006d2c']);

@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { fade, fly, scale } from 'svelte/transition';
+  import { fade, fly, scale, slide } from 'svelte/transition';
   import BarChart from '../lib/BarChart.svelte';
   import Boxplot from  '../lib/Boxplot.svelte';
   import ScatterPlot from  '../lib/ScatterPlot.svelte';
@@ -124,8 +124,8 @@
 <div class="slide" aria-live="polite" role="region" aria-label="Apresentação de slides">
   {#key currentSlide}
     <div
-      out:fade={{ duration: 0 }}
-      in:fade={{ duration: 500, delay: 300 }}
+      in:fly={{ x: 800, duration: 600 }}
+      out:fly={{ x: -800, duration: 600 }}
       style="width: 100%;"
     >
       {#if currentSlide === 0}

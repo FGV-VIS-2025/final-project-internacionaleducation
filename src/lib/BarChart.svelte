@@ -10,9 +10,36 @@
     if (!data.length) return;
 
     const margin = { top: 20, right: 30, bottom: 50, left: 200 },
-      width = 600 - margin.left - margin.right,
-      height = 400 - margin.top - margin.bottom;
+      width = 600 - margin.left - margin.right;
 
+    // Processa dados
+    const processed = data.map(d => ({
+      program: `${d.Program} (${d.City})`,
+      cost:
+        Number(d.Tuition_USD) +
+        Number(d.Rent_USD) * 12 * Number(d.Duration_Years) +
+        Number(d.Visa_Fee_USD),
+      University: d.University,
+      City: d.City,
+      Country: d.Country,
+      total_cost:
+        Number(d.Rent_USD) * 12 +
+        Number(d.Visa_Fee_USD) +
+        Number(d.Insurance_USD)
+    }));
+
+    const top10 = processed.sort((a, b) => b.cost - a.cost).slice(0, 1000);
+
+    // Y scale com altura dinâmica (barra altura * número de itens)
+    const y = d3.scaleBand()
+      .range([0, top10.length * 25])  // 25 px por barra (ajusta se quiser)
+      .domain(top10.map(d => d.program))
+      .padding(0.2);
+
+    // Altura do SVG = total de barras * altura barra + margens
+    const height = y.range()[1];
+
+    // Limpa container e cria svg com altura dinâmica
     const svg = d3.select(container)
       .html('')  // limpa antes de desenhar
       .append('svg')
@@ -21,33 +48,11 @@
       .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
-    const processed = data.map(d => ({
-      program: `${d.Program} (${d.City})`,
-      cost:
-        Number(d.Tuition_USD) +
-        Number(d.Rent_USD) * 12 +
-        Number(d.Visa_Fee_USD) +
-        Number(d.Insurance_USD),
-      University: d.University,
-      City: d.City,
-      Country: d.Country,
-      total_cost:
-        Number(d.Tuition_USD) +
-        Number(d.Rent_USD) * 12 * Number(d.Duration_Years) +
-        Number(d.Visa_Fee_USD) +
-        Number(d.Insurance_USD)
-    }));
-
-    const top10 = processed.sort((a, b) => b.cost - a.cost).slice(0, 20);
-
-    const y = d3.scaleBand()
-      .range([0, height])
-      .domain(top10.map(d => d.program))
-      .padding(0.2);
-
+    // Eixo Y
     svg.append('g')
       .call(d3.axisLeft(y));
 
+    // Eixo X
     const x = d3.scaleLinear()
       .domain([0, d3.max(top10, d => d.cost) * 1.1])
       .range([0, width]);
@@ -70,6 +75,7 @@
       .style('z-index', '10')
       .style('opacity', 0);
 
+    // Barras
     svg.selectAll('rect')
       .data(top10)
       .enter()
@@ -85,7 +91,8 @@
           .html(`
             <strong>${d.University || d.program}</strong><br/>
             ${d.City || ''}, ${d.Country || ''}<br/>
-            Custo: $${d.total_cost.toLocaleString()}
+            Curso + Custo de Vida: $${d.cost.toLocaleString()}<br/>
+            Custo de Vida Anual: $${d.total_cost.toLocaleString()}
           `);
       })
       .on('mousemove', (event) => {
@@ -107,4 +114,9 @@
   }
 </script>
 
-<div bind:this={container} class="w-full overflow-x-auto" style="position: relative;"></div>
+<!-- Container com altura fixa e scroll vertical -->
+<div 
+  bind:this={container} 
+  class="w-full" 
+  style="position: relative; height: 450px; margin: 0 0 20px 0 ; overflow-y: auto; border: 1px solid #ccc;">
+</div>

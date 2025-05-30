@@ -18,7 +18,7 @@
   });
 
   function draw() {
-    const width = 800, height = 360;
+    const width = 600, height = 360;
 
     const svg = d3.select(container)
       .html('')

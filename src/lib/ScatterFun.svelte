@@ -9,7 +9,7 @@
   // Dimensões básicas do gráfico
   const margin = { top: 20, right: 30, bottom: 40, left: 50 };
   let width = 600;
-  let height = 400;
+  let height = 360;
 
   onMount(() => {
     // Limpa o container

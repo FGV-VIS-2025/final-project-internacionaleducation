@@ -18,7 +18,7 @@
   });
 
   function draw() {
-    const width = 600, height = 600;
+    const width = 800, height = 360;
 
     const svg = d3.select(container)
       .html('')
@@ -39,6 +39,7 @@
       .style('border-radius', '4px')
       .style('font-size', '12px')
       .style('pointer-events', 'none')
+      .style('z-index', '10')
       .style('opacity', 0);
 
     const projection = d3.geoNaturalEarth1().scale(150).translate([width / 2, height / 2]);
@@ -83,7 +84,6 @@
       .attr('opacity', 0.8)
       .style('cursor', 'pointer')
       .on('mousemove', (event, d) => {
-        if (clicked) return; // não atualiza tooltip se clicou pra detalhar
         const [x, y] = d3.pointer(event, container);
         tooltip
           .html(`
@@ -101,21 +101,17 @@
           .html(`
             <strong>${d.University}</strong><br/>
             ${d.City}, ${d.Country}<br/>
-            ${d.Program} (${d.Level})<br/>
-            Duração: ${d.Duration_Years} anos<br/>
-            Tuition: $${d.Tuition_USD}<br/>
-            Aluguel: $${d.Rent_USD}<br/>
-            Seguro: $${d.Insurance_USD}<br/>
-            Câmbio: ${d.Exchange_Rate}
+            Custo Médio de Curso: $${d.Tuition_USD}<br/>
+            Aluguel Mensal: $${d.Rent_USD}<br/>
+            Seguro de Saúde Mensal: $${d.Insurance_USD}<br/>
+            Câmbio (USD): ${d.Exchange_Rate}
           `)
           .style('left', `${x + 15}px`)
           .style('top', `${y + 15}px`)
           .style('opacity', 1);
       })
       .on('mouseout', () => {
-        if (!clicked) {
-          tooltip.style('opacity', 0);
-        }
+        tooltip.style('opacity', 0);
       });
 
     // Zoom control

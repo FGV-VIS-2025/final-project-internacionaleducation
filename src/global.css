@@ -1,36 +1,13 @@
 body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Georgia', serif;
+  font: 100%/1.5 system-ui;
+  margin-inline: auto; 
   background-color: #f5f4f1;
   color: #333;
   overflow-x: hidden;
+  justify-content: space-around;
 }
 
-.container {
-  display: flex;
-  min-height: 100vh;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  position: relative;
-  z-index: 2;
-}
-
-.left {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.right {
-  flex: 1.5;
-  padding: 2rem;
-  border-left: 2px #ccc;
-}
-
-.right h2 {
+.h2 {
   color: #c94e50;
   font-weight: bold;
   font-size: 1.5rem;
@@ -94,7 +71,7 @@ p {
 .illustration-below {
   display: block;
   margin-top: 2rem;
-  max-width: 100%;
+  max-width: 60%;
   height: auto;
   opacity: 0.9;
 }

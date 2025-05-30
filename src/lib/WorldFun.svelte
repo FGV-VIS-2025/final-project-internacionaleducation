@@ -96,7 +96,19 @@
       })
       .on('click', (event, d) => {
         clicked = true;
-        const [x, y] = d3.pointer(event, container);
+
+        // Zoom até o ponto clicado
+        const [x, y] = projection([+d.lng, +d.lat]);
+        const scale = 4;
+        const translate = [width / 2 - scale * x, height / 2 - scale * y];
+
+        svg.transition()
+          .duration(750)
+          .call(
+            zoom.transform,
+            d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
+          );
+
         tooltip
           .html(`
             <strong>${d.University}</strong><br/>

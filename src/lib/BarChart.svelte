@@ -33,7 +33,7 @@
       Country: d.Country,
       total_cost:
         Number(d.Tuition_USD) +
-        Number(d.Rent_USD) * 12 +
+        Number(d.Rent_USD) * 12 * Number(d.Duration_Years) +
         Number(d.Visa_Fee_USD) +
         Number(d.Insurance_USD)
     }));

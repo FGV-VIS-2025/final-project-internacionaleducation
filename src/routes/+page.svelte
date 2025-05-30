@@ -45,31 +45,6 @@
 
   $: showLine = activeStep !== 1;
 
-  onMount(() => {
-    async function loadData() {
-      const data = await fetchEducationData('/education.json');
-      educationData = data;
-      dataWithCost = calculateCosts(data);
-    }
-
-    loadData();
-
-    const steps = document.querySelectorAll('.scroll-step');
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const index = +entry.target.dataset.index;
-          if (index > activeStep) activeStep = index;
-        }
-      });
-    }, { threshold: 0.5 });
-
-    steps.forEach(step => observer.observe(step));
-
-    return () => observer.disconnect();
-  });
-
-
   //////////////////////////////////////////////////
   // Mudar distância para ScatterPlot
   //////////////////////////////////////////////////
@@ -126,6 +101,32 @@
   function goToSlide(i) {
     currentSlide = i;
   }
+
+
+  // ONMOUNT
+  onMount(() => {
+    async function loadData() {
+      const data = await fetchEducationData('/education.json');
+      educationData = data;
+      dataWithCost = calculateCosts(data);
+    }
+
+    loadData();
+
+    const steps = document.querySelectorAll('.scroll-step');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const index = +entry.target.dataset.index;
+          if (index > activeStep) activeStep = index;
+        }
+      });
+    }, { threshold: 0.5 });
+
+    steps.forEach(step => observer.observe(step));
+
+    return () => observer.disconnect();
+  });
 </script>
 
 <div class="slide">

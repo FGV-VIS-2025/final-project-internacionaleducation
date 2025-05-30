@@ -1,34 +1,36 @@
 <script>
   import * as d3 from 'd3';
-  import { onMount } from 'svelte';
+  import { onMount, afterUpdate } from 'svelte';
 
   export let data = [];
-  
+
   let container;
   let tooltip;
 
-  let selectedPoint = [0, 0];
-  let scatterData = [];
+  let initialized = false; // flag para evitar draw prematuro
 
-  function getDistance(datum, point) {
-    const [latPoint, lngPoint] = point;
-    const lat = Number(datum.lat);
-    const lng = Number(datum.lng);
-    return Math.sqrt((latPoint - lat) ** 2 + (lngPoint - lng) ** 2);
-  }
+  onMount(() => {
+    tooltip = d3.select(document.body)
+      .append('div')
+      .attr('class', 'tooltip')
+      .style('position', 'absolute')
+      .style('background', 'rgba(0, 0, 0, 0.7)')
+      .style('color', '#fff')
+      .style('padding', '6px 10px')
+      .style('border-radius', '4px')
+      .style('font-size', '12px')
+      .style('pointer-events', 'none')
+      .style('z-index', '9999')
+      .style('opacity', 0);
+    
+    initialized = true;
+  });
 
-  function updateScatterData() {
-    scatterData = data.map(d => ({
-      distance: getDistance(d, selectedPoint),
-      total_cost: Number(d.total_cost),
-      City: d.City,
-      Country: d.Country,
-      University: d.University
-    }));
-  }
-
-  $: updateScatterData();
-  $: if (scatterData.length) draw();
+  afterUpdate(() => {
+    if (initialized && data.length && container) {
+      draw();
+    }
+  });
 
   function draw() {
     const margin = { top: 20, right: 70, bottom: 100, left: 70 };
@@ -54,11 +56,11 @@
       .attr("height", height);
 
     let x = d3.scaleLinear()
-      .domain([0, d3.max(scatterData, d => d.distance) * 1.1])
+      .domain([0, d3.max(data, d => d.distance) * 1.1])
       .range([0, width]);
 
     let y = d3.scaleLinear()
-      .domain([0, d3.max(scatterData, d => d.total_cost) * 1.1])
+      .domain([0, d3.max(data, d => d.total_cost) * 1.1])
       .range([height, 0]);
 
     const xAxisGroup = svg.append('g')
@@ -90,7 +92,7 @@
     let ySelection = y.domain();
 
     function updatePoints() {
-      const filtered = scatterData.filter(d =>
+      const filtered = data.filter(d =>
         d.distance >= xSelection[0] && d.distance <= xSelection[1] &&
         d.total_cost >= ySelection[0] && d.total_cost <= ySelection[1]
       );
@@ -118,7 +120,6 @@
             `);
         })
         .on('mousemove', (event) => {
-          // Pega posição com scroll para não errar no posicionamento
           tooltip
             .style('left', (event.clientX + window.scrollX + 10) + 'px')
             .style('top', (event.clientY + window.scrollY + 10) + 'px');
@@ -129,6 +130,8 @@
     }
 
     updatePoints();
+
+    // Brush e Zoom - código igual
 
     const xBrush = d3.scaleLinear().domain(x.domain()).range(x.range());
     const yBrush = d3.scaleLinear().domain(y.domain()).range(y.range());
@@ -193,24 +196,6 @@
       .style('pointer-events', 'all')
       .call(zoom);
   }
-
-  onMount(() => {
-    // Coloca tooltip no body para evitar corte e problemas de overflow
-    tooltip = d3.select(document.body)
-      .append('div')
-      .attr('class', 'tooltip')
-      .style('position', 'absolute')
-      .style('background', 'rgba(0, 0, 0, 0.7)')
-      .style('color', '#fff')
-      .style('padding', '6px 10px')
-      .style('border-radius', '4px')
-      .style('font-size', '12px')
-      .style('pointer-events', 'none')
-      .style('z-index', '9999')
-      .style('opacity', 0);
-
-    updateScatterData();
-  });
 </script>
 
 <style>

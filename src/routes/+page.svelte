@@ -8,10 +8,12 @@
   import WorldFun from  '../lib/WorldFun.svelte';
   import MapForScatter from '../lib/MapForScatter.svelte';
 
-
   let activeStep = 0;
   let educationData = [];
   let dataWithCost = [];
+
+  let latitude = '';
+  let longitude = '';
 
   async function fetchEducationData(url) {
     const res = await fetch(url);
@@ -67,18 +69,60 @@
     return () => observer.disconnect();
   });
 
-  import { fade } from 'svelte/transition';
 
+  //////////////////////////////////////////////////
+  // Mudar distância para ScatterPlot
+  //////////////////////////////////////////////////
+  let selectedPoint = [0, 0];
+  let userCoords = null; // Para armazenar os valores digitados
+
+  function getDistance(datum, point) {
+    const [latPoint, lngPoint] = point;
+    const lat = Number(datum.lat);
+    const lng = Number(datum.lng);
+    return Math.sqrt((latPoint - lat) ** 2 + (lngPoint - lng) ** 2);
+  }
+
+  // Recalcula dataWithCost com distância, sempre que dados ou ponto mudar
+  $: if (educationData.length && selectedPoint) {
+    dataWithCost = calculateCosts(educationData).map(d => ({
+      ...d,
+      distance: getDistance(d, selectedPoint)
+    }));
+  }
+
+  function salvarCoords() {
+    const latNum = parseFloat(latitude);
+    const lonNum = parseFloat(longitude);
+
+    if (isNaN(latNum) || isNaN(lonNum)) {
+      alert('Digite números válidos para Latitude e Longitude!');
+      return;
+    }
+
+    userCoords = { lat: latNum, lon: lonNum };
+    selectedPoint = [latNum, lonNum]; // atualiza o ponto usado pra distância
+  }
+
+  $: dataWithCost = dataWithCost.map(d => ({
+    ...d,
+    distance: getDistance(d, selectedPoint)
+  }));
+
+
+
+  ////////////////////////////////////
+  // Funcionamento dos Slides
+  ////////////////////////////////////
+  import { fade } from 'svelte/transition';
   let currentSlide = 0;
 
   function next() {
     if (currentSlide < 4) currentSlide += 1;
   }
-
   function prev() {
     if (currentSlide > 0) currentSlide -= 1;
   }
-
   function goToSlide(i) {
     currentSlide = i;
   }
@@ -116,6 +160,15 @@
         </button>
       {:else if currentSlide === 1}
         <h2>Slide 2</h2>
+        <label>
+          Latitude:
+          <input type="text" bind:value={latitude} placeholder="ex: -23.5505" />
+        </label>
+        <label>
+          Longitude:
+          <input type="text" bind:value={longitude} placeholder="ex: -46.6333" />
+        </label>
+        <button on:click={salvarCoords}>Salvar</button>
         <ScatterPlot data={dataWithCost}/>
 
 

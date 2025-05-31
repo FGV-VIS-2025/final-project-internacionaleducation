@@ -91,6 +91,17 @@
     distance: getDistance(d, selectedPoint)
   }));
 
+  let selectedCountry = '';
+  // Monta a lista de países únicos a partir de educationData
+  $: countries = Array.from(new Set(educationData.map(d => d.Country)));
+
+  // Se selectedCountry estiver vazio, mostra todos; senão, filtra por Country
+  $: filteredEducation =
+    selectedCountry === ''
+      ? educationData
+      : educationData.filter(d => d.Country === selectedCountry);
+
+
   // Funcionamento dos Slides
   let currentSlide = 0;
 
@@ -308,25 +319,43 @@
       {:else if currentSlide === 4}
         <div class="left-right-container">
           <div class="left">
-            <h2
-              in:fly={{ y: -40, duration: 600 }}
-              class="title"
-            >
+            <h2 in:fly={{ y: -40, duration: 600 }} class="title">
               Visualização <strong>BarChart</strong>
             </h2>
             <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
               Gráfico de barras mostrando custos por país e programa para facilitar a comparação.
             </p>
+            <!-- Filtro de país -->
+            <label for="country-select" class="slide-text">Filtrar por país:</label>
+            <select
+              id="country-select"
+              bind:value={selectedCountry}
+              class="coord-form"
+              in:scale={{ duration: 400, delay: 300 }}
+            >
+              <option value="">Todos</option>
+              {#each countries as country}
+                <option value={country}>{country}</option>
+              {/each}
+            </select>
           </div>
 
           <div class="right">
-            {#if educationData.length}
-              <BarChart data={educationData} />
+
+            <!-- Passa os dados já filtrados ao BarChart -->
+            {#if filteredEducation.length}
+              <BarChart data={filteredEducation} />
             {:else}
-              <p>Carregando dados...</p>
+              <p>Sem dados para esse país.</p>
             {/if}
 
-            <button class="button" size="long" on:click={next} aria-label="Avançar para o próximo slide" in:scale={{ duration: 400, delay: 600 }}>
+            <button
+              class="button"
+              size="long"
+              on:click={next}
+              aria-label="Avançar para o próximo slide"
+              in:scale={{ duration: 400, delay: 600 }}
+            >
               <div id="background"></div>
               <div id="text">Próximo →</div>
               <div id="hitbox"></div>

@@ -144,12 +144,14 @@
           Explore os dados e gráficos abaixo, ou navegue direto para as visualizações se já conhece o projeto!
         </p>
 
-        <img
-          src="images/educacao.png"
-          alt="Ilustração sobre educação"
-          class="illustration-below"
-          in:fly={{ x: -100, duration: 800, delay: 500 }}
-        />
+        <div style="display: flex; justify-content: center;">
+          <img
+            src="images/educacao.png"
+            alt="Ilustração sobre educação"
+            class="illustration-below"
+            in:fly={{ x: -100, duration: 800, delay: 500 }}
+          />
+        </div>
 
         <button
           class="button"

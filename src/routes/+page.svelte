@@ -17,6 +17,14 @@
   let latitude = '';
   let longitude = '';
 
+  const numPaises = 71;
+  const numCidades = 556;
+  const numFaculdades = 622;
+
+  // Para mostrar a fórmula no slide 3
+  const formulaTotal = `total_cost = tuition + visaFee + rent * 12 * durationYears`;
+  const formulaAnual = `anual_cost = (rent + insurance) * 12`;
+
   async function fetchEducationData(url) {
     const res = await fetch(url);
     const data = await res.json();
@@ -87,7 +95,7 @@
   let currentSlide = 0;
 
   function next() {
-    if (currentSlide < 4) currentSlide += 1;
+    if (currentSlide < 6) currentSlide += 1;
   }
   function prev() {
     if (currentSlide > 0) currentSlide -= 1;
@@ -168,6 +176,46 @@
         </button>
 
       {:else if currentSlide === 1}
+        <h2 in:fly={{ y: -40, duration: 600 }} class="title">
+          Fontes de dados de instituições de alto nível
+        </h2>
+        <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
+          Aqui trabalhamos apenas com dados de faculdades de alto nível ao redor do mundo.
+          Abaixo, você vê o número de países, cidades e instituições diferentes contempladas:
+        </p>
+        <div class="stats-grid" in:scale={{ duration: 500, delay: 400 }}>
+          <div class="stat-box">
+            <div class="stat-number">{numPaises}</div>
+            <div class="stat-label">Países</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number">{numCidades}</div>
+            <div class="stat-label">Cidades</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number">{numFaculdades}</div>
+            <div class="stat-label">Faculdades</div>
+          </div>
+        </div>
+
+        <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
+          Na base de dados você encontra não só informações sobre a faculdade, mas também sobre
+          o custo de vida do país, o câmbio (em relação ao dólar), custo médio de aluguel, etc..
+        </p>
+
+        <button
+          class="button"
+          size="long"
+          on:click={next}
+          aria-label="Avançar para o próximo slide"
+          in:scale={{ duration: 400, delay: 600 }}
+        >
+          <div id="background"></div>
+          <div id="text">Próximo →</div>
+          <div id="hitbox"></div>
+        </button>
+
+      {:else if currentSlide === 2}
         <div class="left-right-container">
           <div class="left">
             <h2
@@ -218,7 +266,38 @@
           </div>
         </div>
 
-      {:else if currentSlide === 2}
+      {:else if currentSlide === 3}
+        <!-- Slide 3: Explicação do cálculo de custos -->
+        <h2 in:fly={{ y: -40, duration: 600 }} class="title">
+          Como calculamos o <strong>preço por faculdade</strong>?
+        </h2>
+        <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
+          A partir dos dados, para encontrar o custo total de cada curso usou-se uma fórmula
+          simples, que considera o custo de todas mensalidades, do aluguel durante o período 
+          (pode variar entre 3 a 6 anos!) e o VISA:
+        </p>
+        <pre class="formula" in:scale={{ duration: 500, delay: 400 }}>
+{formulaTotal}
+        </pre>
+        <p class="slide-text" in:fly={{ y: 20, delay: 600, duration: 600 }}>
+          O custo anual de vida estimado é em dólar, e é dado por:
+        </p>
+        <pre class="formula" in:scale={{ duration: 500, delay: 800 }}>
+{formulaAnual}
+        </pre>
+        <button
+          class="button"
+          size="long"
+          on:click={next}
+          aria-label="Avançar para o próximo slide"
+          in:scale={{ duration: 400, delay: 1000 }}
+        >
+          <div id="background"></div>
+          <div id="text">Próximo →</div>
+          <div id="hitbox"></div>
+        </button>
+
+      {:else if currentSlide === 4}
         <div class="left-right-container">
           <div class="left">
             <h2
@@ -247,7 +326,7 @@
           </div>
         </div>
 
-      {:else if currentSlide === 3}
+      {:else if currentSlide === 5}
         <div class="left-right-container">
           <div class="left">
             <h2
@@ -276,7 +355,7 @@
           </div>
         </div>
 
-      {:else if currentSlide === 4}
+      {:else if currentSlide === 6}
         <div class="left-right-container">
           <div class="left">
             <h2
@@ -311,11 +390,13 @@
 <footer style="display: flex; justify-content: center; gap: 12px; padding: 1em; background: #f5f5f7;">
   <div id="select" role="tablist" aria-label="Navegação entre slides">
     {#each [
-      'Introdução',
-      'Custo e Distância',
-      'Análise Total',
-      'Faculdades pelo Mundo',
-      'Conclusão'
+      '0. Introdução',
+      '1. Base de Dados',
+      '2. Custo e Distância',
+      '3. "How to?"',
+      '4. Comparação Geral',
+      '5. Faculdades pelo Mundo',
+      '6. Conclusão'
     ] as label, i}
       <button
         role="tab"
@@ -622,9 +703,40 @@
   }
 }
 
-.slide-0 {
-  background: url('images/background.png') no-repeat center center fixed;
-  background-size: cover;
-}
+  .illustration-below {
+    max-width: 300px;
+    margin-top: 1rem;
+  }
+  .stats-grid {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin: 2rem 0;
+  }
+  .stat-box {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #333;
+  }
+  .stat-label {
+    font-size: 1rem;
+    color: #666;
+  }
+  .formula {
+    background: #272c34;
+    color: #f8f8f2;
+    padding: 0.8rem;
+    border-radius: 5px;
+    font-family: 'Courier New', Courier, monospace;
+    margin: 0.5rem 0;
+    white-space: pre-wrap;
+  }
 
 </style>

@@ -1,6 +1,8 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, createEventDispatcher } from 'svelte';
   import * as d3 from 'd3';
+
+  const dispatch = createEventDispatcher();
 
   let map;
   let mapContainer;
@@ -20,7 +22,6 @@
     };
 
     const countryCosts = {};
-
     costData.forEach(d => {
       const name = (d.Country || '').toLowerCase().trim();
       const normalized = countryNameMap[name] || name;
@@ -51,11 +52,6 @@
       .domain([min, max])
       .range(['#edf8fb', '#006d2c']);
 
-    geoData.features.forEach(f => {
-      const name = f.properties.name.toLowerCase();
-      f.properties.avgCost = avgCostByCountry[name] || null;
-    });
-
     map = L.map(mapContainer).setView([20, 0], 2);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -73,25 +69,23 @@
       };
     }
 
-    function onEachFeature(feature, layer) {
-      const name = feature.properties.name;
-      const cost = feature.properties.avgCost;
-      const popupContent = `<strong>${name}</strong><br/>
-        Custo médio: ${cost ? `$${cost.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : 'N/A'}`;
-      layer.bindPopup(popupContent);
-    }
-
+    // Remove popup binding: apenas aplica estilo, sem onEachFeature
     L.geoJSON(geoData, {
-      style,
-      onEachFeature
+      style
     }).addTo(map);
+
+    // Faz todo o mapa escutar clique, sem abrir popup nos países
+    map.on('click', e => {
+      const { lat, lng } = e.latlng;
+      dispatch('select', { lat, lng });
+    });
   });
 </script>
 
 <style>
   #map {
     width: 100%;
-    height: 100vh;
+    height: 30vh;
     border-radius: 12px;
   }
 </style>

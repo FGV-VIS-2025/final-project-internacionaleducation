@@ -5,24 +5,9 @@
   export let data = [];
 
   let container;
-  let tooltip;
-
-  let initialized = false; // flag para evitar draw prematuro
+  let initialized = false;
 
   onMount(() => {
-    tooltip = d3.select(document.body)
-      .append('div')
-      .attr('class', 'tooltip')
-      .style('position', 'absolute')
-      .style('background', 'rgba(0, 0, 0, 0.7)')
-      .style('color', '#fff')
-      .style('padding', '6px 10px')
-      .style('border-radius', '4px')
-      .style('font-size', '12px')
-      .style('pointer-events', 'none')
-      .style('z-index', '9999')
-      .style('opacity', 0);
-    
     initialized = true;
   });
 
@@ -33,176 +18,106 @@
   });
 
   function draw() {
-    const margin = { top: 20, right: 70, bottom: 100, left: 70 };
+    const margin = { top: 20, right: 20, bottom: 60, left: 60 };
     const width = 600 - margin.left - margin.right;
     const height = 360 - margin.top - margin.bottom;
-    const brushHeight = 50;
-    const brushWidth = 50;
 
+    // Remove existing SVG and tooltip
     d3.select(container).select('svg').remove();
+    d3.select(container).selectAll('.tooltip').remove();
 
-    const svg = d3.select(container)
+    // Create tooltip div (invisible by default)
+    const tooltip = d3
+      .select(container)
+      .append('div')
+      .attr('class', 'tooltip')
+      .style('opacity', 0);
+
+    const svg = d3
+      .select(container)
       .append('svg')
-      .attr('width', width + margin.left + margin.right + brushWidth)
-      .attr('height', height + margin.top + margin.bottom + brushHeight)
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
       .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
-    svg.append("defs")
-      .append("clipPath")
-      .attr("id", "clip")
-      .append("rect")
-      .attr("width", width)
-      .attr("height", height);
-
-    let x = d3.scaleLinear()
+    const x = d3
+      .scaleLinear()
       .domain([0, d3.max(data, d => d.distance) * 1.1])
       .range([0, width]);
 
-    let y = d3.scaleLinear()
+    const y = d3
+      .scaleLinear()
       .domain([0, d3.max(data, d => d.total_cost) * 1.1])
       .range([height, 0]);
 
-    const xAxisGroup = svg.append('g')
+    const xAxisGroup = svg
+      .append('g')
       .attr('transform', `translate(0,${height})`)
-      .call(d3.axisBottom(x).ticks(6).tickFormat(d3.format(".2f")));
+      .call(d3.axisBottom(x).ticks(6).tickFormat(d3.format('.2f')));
 
-    const yAxisGroup = svg.append('g')
-      .call(d3.axisLeft(y));
+    const yAxisGroup = svg.append('g').call(d3.axisLeft(y));
 
-    xAxisGroup.append("text")
-      .attr("fill", "#000")
-      .attr("x", width / 2)
-      .attr("y", 30)
-      .attr("text-anchor", "middle")
-      .text("Distância");
+    xAxisGroup
+      .append('text')
+      .attr('fill', '#000')
+      .attr('x', width / 2)
+      .attr('y', 40)
+      .attr('text-anchor', 'middle')
+      .text('Distância');
 
-    yAxisGroup.append("text")
-      .attr("fill", "#000")
-      .attr("transform", "rotate(-90)")
-      .attr("x", -height / 2)
-      .attr("y", -50)
-      .attr("text-anchor", "middle")
-      .text("Custo Total (USD)");
+    yAxisGroup
+      .append('text')
+      .attr('fill', '#000')
+      .attr('transform', 'rotate(-90)')
+      .attr('x', -height / 2)
+      .attr('y', -45)
+      .attr('text-anchor', 'middle')
+      .text('Custo Total (USD)');
 
-    const pointsGroup = svg.append('g')
-      .attr("clip-path", "url(#clip)");
-
-    let xSelection = x.domain();
-    let ySelection = y.domain();
-
-    function updatePoints() {
-      const filtered = data.filter(d =>
-        d.distance >= xSelection[0] && d.distance <= xSelection[1] &&
-        d.total_cost >= ySelection[0] && d.total_cost <= ySelection[1]
-      );
-
-      const circles = pointsGroup.selectAll('circle').data(filtered, d => d.City + d.total_cost);
-
-      circles.exit().remove();
-
-      circles.enter()
-        .append('circle')
-        .attr('r', 5)
-        .attr('fill', '#4682b4')
-        .style('opacity', 0.7)
-        .style('cursor', 'pointer')
-        .merge(circles)
-        .attr('cx', d => x(d.distance))
-        .attr('cy', d => y(d.total_cost))
-        .on('mouseover', (event, d) => {
-          tooltip
-            .style('opacity', 1)
-            .html(`
-              <strong>${d.University}</strong><br/>
-              ${d.City}, ${d.Country}<br/>
-              Custo: $${d.total_cost.toLocaleString()}
-            `);
-        })
-        .on('mousemove', (event) => {
-          tooltip
-            .style('left', (event.clientX + window.scrollX + 10) + 'px')
-            .style('top', (event.clientY + window.scrollY + 10) + 'px');
-        })
-        .on('mouseout', () => {
-          tooltip.style('opacity', 0);
-        });
-    }
-
-    updatePoints();
-
-    // Brush e Zoom - código igual
-
-    const xBrush = d3.scaleLinear().domain(x.domain()).range(x.range());
-    const yBrush = d3.scaleLinear().domain(y.domain()).range(y.range());
-
-    const brushGroupX = svg.append('g')
-      .attr('transform', `translate(0,${height + 40})`);
-
-    brushGroupX.append('g').call(d3.axisBottom(xBrush));
-
-    const brushX = d3.brushX()
-      .extent([[0, 0], [width, brushHeight]])
-      .on('brush end', (event) => {
-        if (!event.selection) {
-          xSelection = x.domain();
-        } else {
-          xSelection = event.selection.map(xBrush.invert);
-        }
-        updatePoints();
+    // Draw points with tooltip
+    svg
+      .selectAll('circle')
+      .data(data, d => d.City + d.total_cost)
+      .join('circle')
+      .attr('r', 5)
+      .attr('fill', '#4682b4')
+      .style('opacity', 0.7)
+      .style('cursor', 'pointer')
+      .attr('cx', d => x(d.distance))
+      .attr('cy', d => y(d.total_cost))
+      .on('mouseenter', (event, d) => {
+        tooltip
+          .html(
+            `<strong>${d.City}</strong><br/>Distância: ${d.distance.toFixed(
+              2
+            )}<br/>Custo: $${d.total_cost.toLocaleString()}`
+          )
+          .style('opacity', 1);
+      })
+      .on('mousemove', event => {
+        const [mx, my] = d3.pointer(event, container);
+        tooltip.style('left', `${mx + 10}px`).style('top', `${my + 10}px`);
+      })
+      .on('mouseleave', () => {
+        tooltip.style('opacity', 0);
       });
-
-    brushGroupX.append('g').attr('class', 'brush').call(brushX);
-
-    const brushGroupY = svg.append('g')
-      .attr('transform', `translate(${width + 40}, 0)`);
-
-    brushGroupY.append('g').call(d3.axisRight(yBrush));
-
-    const brushY = d3.brushY()
-      .extent([[0, 0], [brushWidth, height]])
-      .on('brush end', (event) => {
-        if (!event.selection) {
-          ySelection = y.domain();
-        } else {
-          ySelection = event.selection.map(yBrush.invert).sort((a,b) => a - b);
-        }
-        updatePoints();
-      });
-
-    brushGroupY.append('g').attr('class', 'brush').call(brushY);
-
-    const zoom = d3.zoom()
-      .scaleExtent([1, 10])
-      .translateExtent([[0, 0], [width, height]])
-      .extent([[0, 0], [width, height]])
-      .on('zoom', (event) => {
-        const transform = event.transform;
-        const zx = transform.rescaleX(x);
-        const zy = transform.rescaleY(y);
-
-        xAxisGroup.call(d3.axisBottom(zx).ticks(6).tickFormat(d3.format(".2f")));
-        yAxisGroup.call(d3.axisLeft(zy));
-
-        pointsGroup.selectAll('circle')
-          .attr('cx', d => zx(d.distance))
-          .attr('cy', d => zy(d.total_cost));
-      });
-
-    svg.append('rect')
-      .attr('width', width)
-      .attr('height', height)
-      .style('fill', 'none')
-      .style('pointer-events', 'all')
-      .call(zoom);
   }
 </script>
 
 <style>
   .tooltip {
-    font-size: 12px;
-    pointer-events: none;
     position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    white-space: nowrap;
   }
 </style>
 

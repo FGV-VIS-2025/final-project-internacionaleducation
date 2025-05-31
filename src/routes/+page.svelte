@@ -225,7 +225,8 @@
               Insira sua <strong>localização</strong>
             </h2>
             <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
-              Para analisar os custos com base em distância, informe sua <strong>latitude</strong> e <strong>longitude</strong> abaixo.
+              Para analisar as faculdades mais próximas de você, <strong>clique no mapa</strong> abaixo
+              e analise a disponibilidade!
             </p>
 
             <form on:submit|preventDefault={salvarCoords} class="coord-form" in:scale={{ duration: 400, delay: 300 }}>
@@ -234,7 +235,7 @@
                 <input
                   type="text"
                   bind:value={latitude}
-                  placeholder="ex: -23.5505"
+                  placeholder="ex: 0"
                   aria-label="Campo para inserir latitude"
                   autocomplete="off"
                 />
@@ -244,7 +245,7 @@
                 <input
                   type="text"
                   bind:value={longitude}
-                  placeholder="ex: -46.6333"
+                  placeholder="ex: 0"
                   aria-label="Campo para inserir longitude"
                   autocomplete="off"
                 />
@@ -253,6 +254,13 @@
                 Salvar
               </button>
             </form>
+
+          <WorldMap on:select={(e) => {
+              // Quando o usuário clicar no mapa, sobrescreve latitude/longitude e selectedPoint
+              latitude = e.detail.lat.toFixed(6);
+              longitude = e.detail.lng.toFixed(6);
+              selectedPoint = [e.detail.lat, e.detail.lng];
+          }} />
           </div>
 
           <div class="right">

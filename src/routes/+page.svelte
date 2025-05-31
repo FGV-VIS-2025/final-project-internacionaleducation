@@ -7,6 +7,7 @@
   import ScatterFun from  '../lib/ScatterFun.svelte';
   import WorldMap from  '../lib/WorldMap.svelte';
   import WorldFun from  '../lib/WorldFun.svelte';
+  import WorldFun2 from  '../lib/WorldFun2.svelte';
   import MapForScatter from '../lib/MapForScatter.svelte';
 
   let activeStep = 0;
@@ -262,7 +263,7 @@
 
           <div class="right">
             {#if educationData.length}
-              <WorldFun data={educationData} />
+              <WorldFun2 data={educationData} />
             {:else}
               <p>Carregando dados...</p>
             {/if}

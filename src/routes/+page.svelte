@@ -309,7 +309,7 @@
 
           <pre class="formula">
             <code>
-              <Tooltip text="Custo anual de vida, incluindo aluguel e seguro">anual_cost</Tooltip> = (<Tooltip text="Valor do aluguel mensal, em dólares">rent</Tooltip> + <Tooltip text="Seguro saúde ou de vida, obrigatório em alguns países">insurance</Tooltip>) * 12
+              <Tooltip text="Custo anual de vida, incluindo aluguel e seguro">           anual_cost</Tooltip> = (<Tooltip text="Valor do aluguel mensal, em dólares">rent</Tooltip> + <Tooltip text="Seguro saúde ou de vida, obrigatório em alguns países">insurance</Tooltip>) * 12
             </code>
           </pre>
         </div>
@@ -786,7 +786,7 @@
 .formula {
     background: #272c34;
     color: #f8f8f2;
-    padding: 1rem 1.5rem;
+    padding: 0rem 6rem;
     border-radius: 8px;
     font-family: 'Fira Code', monospace;
     margin: 1rem 0;

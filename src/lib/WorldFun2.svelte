@@ -9,6 +9,12 @@
   let currentFlag = null;
   let currentClipPath = null;
   let currentPattern = null;
+  let tooltip;
+  let circlesSize = 4;
+  let circlesColor = '#ff5733';
+  let circlesOpacity = 0.8;
+  let pinWidth = 10;
+  let pinHeight = 10;
 
   let svg, g, states, path, projection, zoom, circles;
   let world;
@@ -63,6 +69,7 @@
     { name: "Poland", code: "pl" },
     { name: "Portugal", code: "pt" },
     { name: "Romania", code: "ro" },
+    { name: "Russia", code: "ru" },
     { name: "Saudi Arabia", code: "sa" },
     { name: "Serbia", code: "rs" },
     { name: "Singapore", code: "sg" },
@@ -121,22 +128,23 @@
     svg.append("defs");
 
     // Tooltip
-    const tooltip = d3.select(container)
-      .append("div")
-      .attr("class", "tooltip")
-      .style("position", "absolute")
-      .style("padding", "10px")
-      .style("background", "rgba(0, 0, 0, 0.8)")
-      .style("color", "#fff")
-      .style("border-radius", "4px")
-      .style("font-size", "12px")
-      .style("pointer-events", "none")
-      .style("z-index", "10")
-      .style("opacity", 0);
+    if (!tooltip) {
+      tooltip = d3.select(container)
+        .append("div")
+        .attr("class", "tooltip")
+        .style("position", "absolute")
+        .style("padding", "10px")
+        .style("background", "rgba(0, 0, 0, 0.8)")
+        .style("color", "#fff")
+        .style("border-radius", "4px")
+        .style("font-size", "12px")
+        .style("pointer-events", "none")
+        .style("z-index", "10")
+        .style("opacity", 0);
+    }
 
     states = g.append("g")
       .attr("fill", "#ccc")
-      .attr("cursor", "pointer")
       .selectAll("path")
       .data(world.features)
       .join("path")
@@ -162,9 +170,9 @@
         .join("circle")
         .attr("cx", d => projection([+d.lng, +d.lat])?.[0] || 0)
         .attr("cy", d => projection([+d.lng, +d.lat])?.[1] || 0)
-        .attr("r", 4)
-        .attr("fill", "#ff5733")
-        .attr("opacity", 0.8)
+        .attr("r", circlesSize)
+        .attr("fill", circlesColor)
+        .attr("opacity", circlesOpacity)
         .style("cursor", "pointer")
         .on("mousemove", (event, d) => {
           const [x, y] = d3.pointer(event, container);
@@ -193,15 +201,15 @@
           const translate = [width / 2 - scale * x, height / 2 - scale * y];
 
           svg.transition()
-            .duration(750)
+            .duration(1000)
             .call(
               zoom.transform,
               d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
             );
         });
     }
+    
   }
-
 
   function reset() {
     if (currentFlag) {
@@ -224,6 +232,16 @@
       zoom.transform,
       d3.zoomIdentity
     );
+
+    if (circles) {
+      circles.transition()
+        .duration(500)
+        .attr("r", circlesSize)
+        .attr("fill", circlesColor)
+        .attr("opacity", circlesOpacity);
+    }
+
+    g.selectAll("image.pin").remove();
   }
 
   function clicked(event, d) {
@@ -240,6 +258,7 @@
     reset();
 
     selectedCountry = countryName;
+
     const match = countriesISO.find(c => c.name.toLowerCase() === countryName.toLowerCase());
     if (!match) return;
 
@@ -282,10 +301,11 @@
       .attr("height", viewHeight * (1 + extra))
       .attr("clip-path", `url(#flag-clip-${match.code})`)
       .style("fill", `url(#flag-pattern-${match.code})`)
-      .style("opacity", 0);
+      .style("opacity", 0)
+      .style("pointer-events", "none");
 
     // Aplica zoom e animação
-    svg.transition().duration(750).call(
+    svg.transition().duration(1000).call(
       zoom.transform,
       d3.zoomIdentity
         .translate(svg.attr("width") / 2, svg.attr("height") / 2)
@@ -299,6 +319,82 @@
         .duration(500)
         .style("opacity", 1);
     });
+
+    // Remover pins anteriores
+    g.selectAll("image.pin").remove();
+
+    // Adiciona os novos pins com efeito de queda e tooltip
+    const pins = g.selectAll("image.pin")
+      .data(
+          Array.from(
+            d3.group(
+              data.filter(d => d.Country === selectedCountry),
+              d => d.University
+            ).values(),
+            v => v[0]
+          )
+        )
+      .join("image")
+      .attr("class", "pin")
+      .attr("href", "images/pinMap.png")
+      .attr("width", pinWidth)
+      .attr("height", pinHeight)
+      .attr("x", d => (projection([+d.lng, +d.lat])?.[0] || 0) - pinWidth / 2)
+      .attr("y", d => (projection([+d.lng, +d.lat])?.[1] || 0) - pinHeight - 50) // começa acima
+      .style("opacity", 0)
+      .style("cursor", "pointer")
+      .style("pointer-events", "auto")
+      .on("mousemove", (event, d) => {
+        const [x, y] = d3.pointer(event, container);
+        tooltip
+          .html(`
+            <strong>${d.University}</strong><br/>
+            ${d.City}, ${d.Country}<br/>
+            Curso: ${d.Program} (${d.Level})<br/>
+            Duração: ${d.Duration_Years} anos<br/>
+            Mensalidade: $${d.Tuition_USD}<br/>
+            Aluguel: $${d.Rent_USD}<br/>
+            Seguro: $${d.Insurance_USD}<br/>
+            Câmbio: ${d.Exchange_Rate}
+          `)
+          .style("left", `${x + 15}px`)
+          .style("top", `${y + 15}px`)
+          .style("opacity", 1);
+      })
+      .on("mouseout", () => {
+        tooltip.style("opacity", 0);
+      })
+      .on("click", (event, d) => {
+        event.stopPropagation();
+        const [x, y] = projection([+d.lng, +d.lat]);
+        const scale = 4;
+        const translate = [svg.attr("width") / 2 - scale * x, svg.attr("height") / 2 - scale * y];
+
+        svg.transition()
+          .duration(750)
+          .call(
+            zoom.transform,
+            d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
+          );
+      });
+
+    // Aparecer depois da bandeira
+    currentFlag.transition()
+      .duration(500)
+      .style("opacity", 1)
+      .on("end", () => {
+        pins.transition()
+          .delay((_, i) => i * 50) // efeito em cascata
+          .duration(600)
+          .attr("y", d => (projection([+d.lng, +d.lat])?.[1] || 0) - pinHeight)
+          .style("opacity", 1);
+      });
+
+    if (circles) {
+      circles.transition()
+        .duration(500)
+        .attr("fill", d => d.Country === selectedCountry ? "#0077ff" : "#ff5733");
+    }
   }
 
   function zoomToCountry(name) {

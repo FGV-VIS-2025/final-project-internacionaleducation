@@ -9,6 +9,7 @@
   import WorldFun from  '../lib/WorldFun.svelte';
   import WorldFun2 from  '../lib/WorldFun2.svelte';
   import MapForScatter from '../lib/MapForScatter.svelte';
+  import Tooltip from '../lib/Tooltip.svelte';
 
   let activeStep = 0;
   let educationData = [];
@@ -295,15 +296,24 @@
           simples, que considera o custo de todas mensalidades, do aluguel durante o período 
           (pode variar entre 3 a 6 anos!) e o VISA:
         </p>
-        <pre class="formula" in:scale={{ duration: 500, delay: 400 }}>
-{formulaTotal}
-        </pre>
-        <p class="slide-text" in:fly={{ y: 20, delay: 600, duration: 600 }}>
-          O custo anual de vida estimado é em dólar, e é dado por:
-        </p>
-        <pre class="formula" in:scale={{ duration: 500, delay: 800 }}>
-{formulaAnual}
-        </pre>
+        <div class="formula-container">
+          <pre class="formula">
+            <code>
+              <Tooltip text="Custo total do curso, incluindo mensalidade, aluguel e taxa de visto">total_cost</Tooltip> = <Tooltip text="Valor das mensalidades do curso, em dólares">tuition</Tooltip> + <Tooltip text="Taxa para emissão de visto de estudante">visaFee</Tooltip> + <Tooltip text="Aluguel mensal, em dólares">rent</Tooltip> * 12 * <Tooltip text="Duração do curso em anos">durationYears</Tooltip>
+            </code>
+          </pre>
+
+          <p class="slide-text">
+            O custo anual de vida estimado é em dólar, e é dado por:
+          </p>
+
+          <pre class="formula">
+            <code>
+              <Tooltip text="Custo anual de vida, incluindo aluguel e seguro">anual_cost</Tooltip> = (<Tooltip text="Valor do aluguel mensal, em dólares">rent</Tooltip> + <Tooltip text="Seguro saúde ou de vida, obrigatório em alguns países">insurance</Tooltip>) * 12
+            </code>
+          </pre>
+        </div>
+
         <button
           class="button"
           size="long"
@@ -766,14 +776,29 @@
     font-size: 1rem;
     color: #666;
   }
-  .formula {
+
+  .formula-container {
+    margin: 2rem auto;
+    max-width: 800px;
+    padding: 0 1rem; /* para não colar nas bordas em telas pequenas */
+}
+
+.formula {
     background: #272c34;
     color: #f8f8f2;
-    padding: 0.8rem;
-    border-radius: 5px;
-    font-family: 'Courier New', Courier, monospace;
-    margin: 0.5rem 0;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    font-family: 'Fira Code', monospace;
+    margin: 1rem 0;
     white-space: pre-wrap;
-  }
+    text-align: left;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.formula:hover {
+    transform: scale(1.02);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
 
 </style>

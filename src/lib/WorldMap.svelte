@@ -7,6 +7,37 @@
   let map;
   let mapContainer;
 
+  let cityInput = '';
+  let suggestions = [];
+  const MAPBOX_TOKEN = 'pk.eyJ1IjoidmluYXNxdWUiLCJhIjoiY21iZHNiaG9uMW5rejJpcHY3Y3Rwem9zbyJ9.GM-u07CTOXFnKXA_N99aoQ';
+
+  async function searchCities() {
+    if (cityInput.length < 3) {
+      suggestions = [];
+      return;
+    }
+
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(cityInput)}.json?access_token=${MAPBOX_TOKEN}&types=place&language=pt&limit=5`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    suggestions = data.features.map(f => ({
+      name: f.text,
+      place_name: f.place_name,
+      center: f.center  // [lng, lat]
+    }));
+  }
+
+  function goToCity(suggestion) {
+    cityInput = suggestion.place_name;
+    const [lng, lat] = suggestion.center;
+
+    map.setView([lat, lng], 8);  // zoom ajustável
+    dispatch('select', { lat, lng });
+
+    suggestions = [];
+  }
+
   onMount(async () => {
     const L = await import('leaflet');
 
@@ -69,12 +100,8 @@
       };
     }
 
-    // Remove popup binding: apenas aplica estilo, sem onEachFeature
-    L.geoJSON(geoData, {
-      style
-    }).addTo(map);
+    L.geoJSON(geoData, { style }).addTo(map);
 
-    // Faz todo o mapa escutar clique, sem abrir popup nos países
     map.on('click', e => {
       const { lat, lng } = e.latlng;
       dispatch('select', { lat, lng });
@@ -88,6 +115,61 @@
     height: 30vh;
     border-radius: 12px;
   }
+
+  .search-container {
+    margin-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  input[type="text"] {
+    padding: 0.4rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+
+  .suggestions {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 150px;
+    overflow-y: auto;
+  }
+
+  .suggestions li {
+    padding: 0.5rem;
+    cursor: pointer;
+  }
+
+  .suggestions li:hover {
+    background: #f0f0f0;
+  }
 </style>
+
+<div class="search-container">
+  <label>
+    Pesquisar cidade:
+    <input
+      type="text"
+      bind:value={cityInput}
+      on:input={searchCities}
+      placeholder="Digite o nome da cidade..."
+    />
+  </label>
+
+  {#if suggestions.length}
+    <ul class="suggestions">
+      {#each suggestions as suggestion}
+        <li on:click={() => goToCity(suggestion)}>
+          {suggestion.place_name}
+        </li>
+      {/each}
+    </ul>
+  {/if}
+</div>
 
 <div id="map" bind:this={mapContainer}></div>

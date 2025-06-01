@@ -6,6 +6,7 @@
 
   let map;
   let mapContainer;
+  let marker;  // Novo: referência ao marcador
 
   let cityInput = '';
   let suggestions = [];
@@ -32,10 +33,26 @@
     cityInput = suggestion.place_name;
     const [lng, lat] = suggestion.center;
 
-    map.setView([lat, lng], 8);  // zoom ajustável
-    dispatch('select', { lat, lng });
+    map.setView([lat, lng], 8);
 
+    // Novo: adiciona ou move marcador
+    if (marker) {
+      marker.setLatLng([lat, lng]);
+    } else {
+      marker = L.marker([lat, lng]).addTo(map);
+    }
+
+    dispatch('select', { lat, lng });
     suggestions = [];
+  }
+
+  function clearSearch() {
+    cityInput = '';
+    suggestions = [];
+    if (marker) {
+      map.removeLayer(marker);
+      marker = null;
+    }
   }
 
   onMount(async () => {
@@ -123,10 +140,28 @@
     gap: 0.25rem;
   }
 
+  .input-group {
+    display: flex;
+    gap: 0.25rem;
+  }
+
   input[type="text"] {
+    flex: 1;
     padding: 0.4rem;
     border-radius: 6px;
     border: 1px solid #ccc;
+  }
+
+  button.clear-btn {
+    padding: 0.4rem 0.6rem;
+    border: none;
+    background: #e0e0e0;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  button.clear-btn:hover {
+    background: #d0d0d0;
   }
 
   .suggestions {
@@ -153,12 +188,15 @@
 <div class="search-container">
   <label>
     Pesquisar cidade:
-    <input
-      type="text"
-      bind:value={cityInput}
-      on:input={searchCities}
-      placeholder="Digite o nome da cidade..."
-    />
+    <div class="input-group">
+      <input
+        type="text"
+        bind:value={cityInput}
+        on:input={searchCities}
+        placeholder="Digite o nome da cidade..."
+      />
+      <button class="clear-btn" on:click={clearSearch}>Limpar</button>
+    </div>
   </label>
 
   {#if suggestions.length}

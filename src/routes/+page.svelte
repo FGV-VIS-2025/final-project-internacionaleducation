@@ -147,7 +147,7 @@
     <div
       in:fly={{ x: 800, duration: 600 }}
       out:fly={{ x: -800, duration: 600 }}
-      style="width: 100%;"
+      style="width: 100%; position: absolute; top: 10;"
     >
       {#if currentSlide === 0}
         <h2
@@ -472,12 +472,14 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 80vh;
+    min-height: 80vh;
     text-align: center;
     padding: 20px;
     max-width: 120ch;
     margin-inline: auto;
     user-select: none;
+    position: relative;
+    /* overflow: hidden; */
   }
 
   .title {

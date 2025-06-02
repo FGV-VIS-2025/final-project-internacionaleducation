@@ -241,7 +241,7 @@
               e analise a disponibilidade!
             </p>
 
-            <form on:submit|preventDefault={salvarCoords} class="coord-form" in:scale={{ duration: 400, delay: 300 }}>
+           <!--- <form on:submit|preventDefault={salvarCoords} class="coord-form" in:scale={{ duration: 400, delay: 300 }}>
               <label>
                 Latitude:
                 <input
@@ -265,7 +265,7 @@
               <button type="submit" class="button-small" aria-label="Salvar coordenadas">
                 Salvar
               </button>
-            </form>
+            </form> --->
 
           <WorldMap on:select={(e) => {
               // Quando o usuário clicar no mapa, sobrescreve latitude/longitude e selectedPoint

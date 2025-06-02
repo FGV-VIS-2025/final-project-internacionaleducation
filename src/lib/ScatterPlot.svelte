@@ -89,9 +89,9 @@
       .on('mouseenter', (event, d) => {
         tooltip
           .html(
-            `<strong>${d.City}</strong><br/>Distância: ${d.distance.toFixed(
-              2
-            )}<br/>Custo: $${d.total_cost.toLocaleString()}`
+            `<strong>${d.City}, ${d.Country}</strong><br/>
+            ${d.University}
+            <br/>Custo Total do Curso: USD $${d.total_cost.toLocaleString()}`
           )
           .style('opacity', 1);
       })

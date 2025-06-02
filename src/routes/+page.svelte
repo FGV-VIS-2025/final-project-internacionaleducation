@@ -93,15 +93,16 @@
   }));
 
   let selectedCountry = '';
+  let selectedProgram = '';
+
   // Monta a lista de países únicos a partir de educationData
   $: countries = Array.from(new Set(educationData.map(d => d.Country)));
+  $: programs = Array.from(new Set(educationData.map(d => d.Program))).sort();
 
-  // Se selectedCountry estiver vazio, mostra todos; senão, filtra por Country
-  $: filteredEducation =
-    selectedCountry === ''
-      ? educationData
-      : educationData.filter(d => d.Country === selectedCountry);
-
+  $: filteredEducation = educationData.filter(d =>
+    (!selectedCountry || d.Country === selectedCountry) &&
+    (!selectedProgram || d.Program === selectedProgram)
+  );
 
   // Funcionamento dos Slides
   let currentSlide = 0;
@@ -147,7 +148,7 @@
     <div
       in:fly={{ x: 800, duration: 600 }}
       out:fly={{ x: -800, duration: 600 }}
-      style="width: 100%;"
+      style="width: 100%; position: absolute; top: 10;"
     >
       {#if currentSlide === 0}
         <h2
@@ -348,6 +349,19 @@
                 <option value={country}>{country}</option>
               {/each}
             </select>
+            <label for="program-select" class="slide-text">Filtrar por curso:</label>
+            <select
+              id="program-select"
+              bind:value={selectedProgram}
+              class="coord-form"
+              in:scale={{ duration: 400, delay: 300 }}
+            >
+              <option value="">Todos</option>
+              {#each programs as program}
+                <option value={program}>{program}</option>
+              {/each}
+            </select>
+
           </div>
 
           <div class="right">
@@ -472,12 +486,14 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 80vh;
+    min-height: 80vh;
     text-align: center;
     padding: 20px;
     max-width: 120ch;
     margin-inline: auto;
     user-select: none;
+    position: relative;
+    /* overflow: hidden; */
   }
 
   .title {

@@ -9,12 +9,12 @@
   let currentFlag = null;
   let currentClipPath = null;
   let currentPattern = null;
-  let tooltip;
   let circlesSize = 4;
   let circlesColor = '#ff5733';
   let circlesOpacity = 0.8;
-  let pinWidth = 10;
-  let pinHeight = 10;
+  let pinWidth = 50;
+  let pinHeight = 50;
+  let tooltip;
 
   let svg, g, states, path, projection, zoom, circles;
   let world;
@@ -97,8 +97,14 @@
     g.attr("stroke-width", 1 / transform.k);
     
     if (circles) {
-      circles.attr("r", 4 / transform.k);
+      circles.attr("r", circlesSize / transform.k);
     }
+
+    g.selectAll("image.pin")
+      .attr("width", pinWidth / transform.k)
+      .attr("height", pinHeight / transform.k)
+      .attr("x", d => (projection([+d.lng, +d.lat])?.[0] || 0) - (pinWidth / transform.k) / 2)
+      .attr("y", d => (projection([+d.lng, +d.lat])?.[1] || 0) - (pinHeight / transform.k));
   }
 
   function draw() {
@@ -115,8 +121,18 @@
       .scaleExtent([1, 12])
       .on("zoom", zoomed);
 
+    // svg = d3.select(container)
+    //   .html('')
+    //   .append("svg")
+    //   .attr("width", width)
+    //   .attr("height", height)
+    //   .attr("viewBox", [0, 0, width, height])
+    //   .attr("style", "max-width: 100%; height: auto;")
+    //   .call(zoom);
+
+    d3.select(container).select("svg").remove();
+
     svg = d3.select(container)
-      .html('')
       .append("svg")
       .attr("width", width)
       .attr("height", height)
@@ -126,22 +142,6 @@
 
     g = svg.append("g");
     svg.append("defs");
-
-    // Tooltip
-    if (!tooltip) {
-      tooltip = d3.select(container)
-        .append("div")
-        .attr("class", "tooltip")
-        .style("position", "absolute")
-        .style("padding", "10px")
-        .style("background", "rgba(0, 0, 0, 0.8)")
-        .style("color", "#fff")
-        .style("border-radius", "4px")
-        .style("font-size", "12px")
-        .style("pointer-events", "none")
-        .style("z-index", "10")
-        .style("opacity", 0);
-    }
 
     states = g.append("g")
       .attr("fill", "#ccc")
@@ -262,6 +262,9 @@
     const match = countriesISO.find(c => c.name.toLowerCase() === countryName.toLowerCase());
     if (!match) return;
 
+    svg.select("defs").select(`#flag-clip-${match.code}`).remove();
+    svg.select("defs").select(`#flag-pattern-${match.code}`).remove();
+
     // Calcula área do país
     const [[x0, y0], [x1, y1]] = path.bounds(d);
     const centerX = (x0 + x1) / 2;
@@ -278,18 +281,20 @@
       .attr("d", path(d));
 
     // Cria padrão da bandeira
+    const size = Math.max(viewWidth, viewHeight) * (1 + extra);
+
     currentPattern = svg.select("defs")
       .append("pattern")
       .attr("id", `flag-pattern-${match.code}`)
       .attr("patternUnits", "userSpaceOnUse")
-      .attr("width", viewWidth * (1 + extra))
-      .attr("height", viewHeight * (1 + extra))
-      .attr("x", centerX - (viewWidth * (1 + extra)) / 2)
-      .attr("y", centerY - (viewHeight * (1 + extra)) / 2)
+      .attr("width", size)
+      .attr("height", size)
+      .attr("x", centerX - size / 2)
+      .attr("y", centerY - size / 2)
       .append("image")
       .attr("xlink:href", `https://flagcdn.com/${match.code}.svg`)
-      .attr("width", viewWidth * (1 + extra))
-      .attr("height", viewHeight * (1 + extra))
+      .attr("width", size)
+      .attr("height", size)
       .attr("preserveAspectRatio", "xMidYMid slice");
 
     // Cria retângulo com a bandeira
@@ -318,7 +323,20 @@
       currentFlag.transition()
         .duration(500)
         .style("opacity", 1);
-    });
+
+        const fixedTransform = d3.zoomTransform(svg.node());
+
+        // Agora anima os pins com esse transform fixo
+        pins
+          .attr("y", d => (projection([+d.lng, +d.lat])?.[1] || 0) - pinHeight - 50) // posição inicial acima
+          .style("opacity", 0) // invisível no início
+          .transition()
+          .delay((_, i) => i * 50)  // cascata entre os pins
+          .duration(800)
+          .ease(d3.easeExpOut)  // efeito de queda (bounce)
+          .attr("y", d => (projection([+d.lng, +d.lat])?.[1] || 0) - (pinHeight / fixedTransform.k)) // posição final
+          .style("opacity", 1);
+    }); 
 
     // Remover pins anteriores
     g.selectAll("image.pin").remove();
@@ -381,14 +399,7 @@
     // Aparecer depois da bandeira
     currentFlag.transition()
       .duration(500)
-      .style("opacity", 1)
-      .on("end", () => {
-        pins.transition()
-          .delay((_, i) => i * 50) // efeito em cascata
-          .duration(600)
-          .attr("y", d => (projection([+d.lng, +d.lat])?.[1] || 0) - pinHeight)
-          .style("opacity", 1);
-      });
+      .style("opacity", 1);
 
     if (circles) {
       circles.transition()
@@ -412,6 +423,19 @@
 
   onMount(async () => {
     await loadWorld();
+    tooltip = d3.select(container)
+      .append("div")
+      .attr("class", "tooltip")
+      .style("position", "absolute")
+      .style("padding", "10px")
+      .style("background", "rgba(0, 0, 0, 0.8)")
+      .style("color", "#fff")
+      .style("border-radius", "4px")
+      .style("font-size", "12px")
+      .style("pointer-events", "none")
+      .style("z-index", "10")
+      .style("opacity", 0);
+
     draw();
     
     window.addEventListener('resize', () => {
@@ -421,19 +445,6 @@
 </script>
 
 <style>
-  .tooltip {
-    position: absolute;
-    z-index: 10;
-    opacity: 0;
-    transition: opacity 0.2s;
-    max-width: 240px;
-    background: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    padding: 10px;
-    border-radius: 4px;
-    font-size: 12px;
-    pointer-events: none;
-  }
   input {
     margin-bottom: 10px;
     padding: 8px 12px;

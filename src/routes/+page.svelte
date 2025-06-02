@@ -120,7 +120,7 @@
   // ONMOUNT
   onMount(() => {
     async function loadData() {
-      const data = await fetchEducationData('/education.json');
+      const data = await fetchEducationData('./education.json');
       educationData = data;
       dataWithCost = calculateCosts(data);
     }

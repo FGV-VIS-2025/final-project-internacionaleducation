@@ -59,8 +59,8 @@
     const L = await import('leaflet');
 
     const [geoData, costData] = await Promise.all([
-      fetch('/countries.geojson').then(r => r.json()),
-      fetch('/education.json').then(r => r.json())
+      fetch('./countries.geojson').then(r => r.json()),
+      fetch('./education.json').then(r => r.json())
     ]);
 
     const countryNameMap = {

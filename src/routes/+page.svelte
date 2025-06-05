@@ -45,6 +45,7 @@
         return {
           Country: d.Country,
           City: d.City,
+          Continent: d.Continent,
           University: d.University,
           Program: d.Program,
           lat: d.lat,
@@ -279,7 +280,14 @@
           <div class="right">
             <ScatterPlot data={dataWithCost} />
 
-            <button class="button" size="long" on:click={next} aria-label="Avançar para o próximo slide" in:scale={{ duration: 400, delay: 600 }}>
+            <button 
+              class="button" 
+              size="long" 
+              on:click={next} 
+              aria-label="Avançar para o próximo slide" 
+              in:scale={{ duration: 400, delay: 600 }}
+              style="margin-top: 2rem;"
+            >
               <div id="background"></div>
               <div id="text">Próximo →</div>
               <div id="hitbox"></div>

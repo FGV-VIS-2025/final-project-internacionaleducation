@@ -2,64 +2,62 @@
   import { onMount } from 'svelte';
   import { fade, fly, scale, slide } from 'svelte/transition';
   import BarChart from '../lib/BarChart.svelte';
-  import Boxplot from  '../lib/Boxplot.svelte';
-  import ScatterPlot from  '../lib/ScatterPlot.svelte';
-  import ScatterFun from  '../lib/ScatterFun.svelte';
-  import WorldMap from  '../lib/WorldMap.svelte';
-  import WorldFun from  '../lib/WorldFun.svelte';
-  import WorldFun2 from  '../lib/WorldFun2.svelte';
+  import Boxplot from '../lib/Boxplot.svelte';
+  import ScatterPlot from '../lib/ScatterPlot.svelte';
+  import ScatterFun from '../lib/ScatterFun.svelte';
+  import WorldMap from '../lib/WorldMap.svelte';
+  import WorldFun from '../lib/WorldFun.svelte';
+  import WorldFun2 from '../lib/WorldFun2.svelte';
   import MapForScatter from '../lib/MapForScatter.svelte';
   import Tooltip from '../lib/Tooltip.svelte';
+  import ContinentBarChart from '../lib/ContinentBarChart.svelte';
+  import CountryCostBoxplot from '../lib/CountryCostBoxplot.svelte';
 
+  // Variáveis de estado
   let activeStep = 0;
   let educationData = [];
   let dataWithCost = [];
+  let currentSlide = 0;
 
+  // Variáveis para filtros e interações
   let latitude = '';
   let longitude = '';
+  let selectedPoint = [0, 0];
+  let selectedCountry = '';
+  let selectedProgram = '';
+  let selectedContinent = null;
+  let continentColorMap = {};
 
+  // Constantes
   const numPaises = 71;
   const numCidades = 556;
   const numFaculdades = 622;
 
-  // Para mostrar a fórmula no slide 3
-  const formulaTotal = `total_cost = tuition + visaFee + rent * 12 * durationYears`;
-  const formulaAnual = `anual_cost = (rent + insurance) * 12`;
-
+  // Funções de manipulação de dados
   async function fetchEducationData(url) {
     const res = await fetch(url);
-    const data = await res.json();
-    return data;
+    return await res.json();
   }
 
   function calculateCosts(data) {
-    return data
-      .map(d => {
-        const tuition = Number(d.Tuition_USD);
-        const visaFee = Number(d.Visa_Fee_USD);
-        const rent = Number(d.Rent_USD);
-        const durationYears = Number(d.Duration_Years);
-
-        const total_cost = tuition + visaFee + rent * 12 * durationYears;
-
-        return {
-          Country: d.Country,
-          City: d.City,
-          Continent: d.Continent,
-          University: d.University,
-          Program: d.Program,
-          lat: d.lat,
-          lng: d.lng,
-          total_cost
-        };
-      });
+    return data.map(d => {
+      const tuition = Number(d.Tuition_USD);
+      const visaFee = Number(d.Visa_Fee_USD);
+      const rent = Number(d.Rent_USD);
+      const durationYears = Number(d.Duration_Years);
+      const total_cost = tuition + visaFee + rent * 12 * durationYears;
+      return {
+        Country: d.Country,
+        City: d.City,
+        Continent: d.Continent,
+        University: d.University,
+        Program: d.Program,
+        lat: d.lat,
+        lng: d.lng,
+        total_cost
+      };
+    });
   }
-
-  $: showLine = activeStep !== 1;
-
-  // Mudar distância para ScatterPlot
-  let selectedPoint = [0, 0];
-  let userCoords = null; // Para armazenar os valores digitados
 
   function getDistance(datum, point) {
     const [latPoint, lngPoint] = point;
@@ -68,48 +66,44 @@
     return Math.sqrt((latPoint - lat) ** 2 + (lngPoint - lng) ** 2);
   }
 
-  $: if (educationData.length && selectedPoint) {
-    dataWithCost = calculateCosts(educationData).map(d => ({
-      ...d,
-      distance: getDistance(d, selectedPoint)
-    }));
-  }
-
-  function salvarCoords() {
-    const latNum = parseFloat(latitude);
-    const lonNum = parseFloat(longitude);
-
-    if (isNaN(latNum) || isNaN(lonNum)) {
-      alert('Digite números válidos para Latitude e Longitude!');
-      return;
+  // Declarações Reativas (lógica principal)
+  $: if (educationData.length) {
+    const baseCostData = calculateCosts(educationData);
+    if (selectedPoint) {
+      dataWithCost = baseCostData.map(d => ({
+        ...d,
+        distance: getDistance(d, selectedPoint)
+      }));
+    } else {
+      dataWithCost = baseCostData;
     }
-
-    userCoords = { lat: latNum, lon: lonNum };
-    selectedPoint = [latNum, lonNum]; // atualiza o ponto usado pra distância
   }
 
-  $: dataWithCost = dataWithCost.map(d => ({
-    ...d,
-    distance: getDistance(d, selectedPoint)
-  }));
-
-  let selectedCountry = '';
-  let selectedProgram = '';
-
-  // Monta a lista de países únicos a partir de educationData
-  $: countries = Array.from(new Set(educationData.map(d => d.Country)));
+  $: countries = Array.from(new Set(educationData.map(d => d.Country))).sort();
   $: programs = Array.from(new Set(educationData.map(d => d.Program))).sort();
 
   $: filteredEducation = educationData.filter(d =>
     (!selectedCountry || d.Country === selectedCountry) &&
     (!selectedProgram || d.Program === selectedProgram)
   );
+  
+  $: filteredDataForBoxplot = selectedContinent
+    ? dataWithCost.filter(d => d.Continent === selectedContinent)
+    : dataWithCost;
+  
+  // Funções de Evento
+  function handleColorsGenerated(event) {
+    continentColorMap = event.detail;
+  }
 
-  // Funcionamento dos Slides
-  let currentSlide = 0;
-
+  function handleContinentSelect(event) {
+    const continent = event.detail;
+    selectedContinent = (selectedContinent === continent) ? null : continent;
+  }
+  
+  // Funções de Navegação
   function next() {
-    if (currentSlide < 6) currentSlide += 1;
+    if (currentSlide < 7) currentSlide += 1;
   }
   function prev() {
     if (currentSlide > 0) currentSlide -= 1;
@@ -118,16 +112,14 @@
     currentSlide = i;
   }
 
-  // ONMOUNT
+  // Lifecycle
   onMount(() => {
     async function loadData() {
-      const data = await fetchEducationData('./education.json');
-      educationData = data;
-      dataWithCost = calculateCosts(data);
+      educationData = await fetchEducationData('./education.json');
     }
-
     loadData();
 
+    // IntersectionObserver para scrollytelling (se aplicável)
     const steps = document.querySelectorAll('.scroll-step');
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
@@ -137,9 +129,7 @@
         }
       });
     }, { threshold: 0.5 });
-
     steps.forEach(step => observer.observe(step));
-
     return () => observer.disconnect();
   });
 </script>
@@ -152,21 +142,16 @@
       style="width: 100%; position: absolute; top: 10;"
     >
       {#if currentSlide === 0}
-        <h2
-          in:fly={{ y: -40, duration: 600 }}
-          class="title"
-        >
+        <h2 in:fly={{ y: -40, duration: 600 }} class="title">
           Como os custos afetam a <strong>educação global</strong>?
         </h2>
         <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
           Este projeto visa <strong>analisar</strong> como as variações nos custos educacionais impactam estudantes no mundo todo.
           Usamos <em>visualizações interativas</em> baseadas em dados reais para trazer insights sobre <strong>desigualdades</strong> e oportunidades.
         </p>
-
         <p class="emphasized" in:scale={{ duration: 500, delay: 400 }}>
           Explore os dados e gráficos abaixo, ou navegue direto para as visualizações se já conhece o projeto!
         </p>
-
         <div style="display: flex; justify-content: center;">
           <img
             src="images/educacao.png"
@@ -175,14 +160,12 @@
             in:fly={{ x: -100, duration: 800, delay: 500 }}
           />
         </div>
-
         <button
           class="button"
           size="long"
           on:click={next}
           aria-label="Avançar para o próximo slide"
           in:scale={{ duration: 400, delay: 600 }}
-          on:mouseenter={() => {}}
         >
           <div id="background"></div>
           <div id="text">Próximo →</div>
@@ -211,12 +194,10 @@
             <div class="stat-label">Faculdades</div>
           </div>
         </div>
-
         <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
           Na base de dados você encontra não só informações sobre a faculdade, mas também sobre
           o custo de vida do país, o câmbio (em relação ao dólar), custo médio de aluguel, etc..
         </p>
-
         <button
           class="button"
           size="long"
@@ -232,54 +213,21 @@
       {:else if currentSlide === 2}
         <div class="left-right-container">
           <div class="left">
-            <h2
-              in:fly={{ y: -40, duration: 600 }}
-              class="title"
-            >
+            <h2 in:fly={{ y: -40, duration: 600 }} class="title">
               Insira sua <strong>localização</strong>
             </h2>
             <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
               Para analisar as faculdades mais próximas de você, <strong>clique no mapa</strong> abaixo
               e analise a disponibilidade!
             </p>
-
-           <!--- <form on:submit|preventDefault={salvarCoords} class="coord-form" in:scale={{ duration: 400, delay: 300 }}>
-              <label>
-                Latitude:
-                <input
-                  type="text"
-                  bind:value={latitude}
-                  placeholder="ex: 0"
-                  aria-label="Campo para inserir latitude"
-                  autocomplete="off"
-                />
-              </label>
-              <label>
-                Longitude:
-                <input
-                  type="text"
-                  bind:value={longitude}
-                  placeholder="ex: 0"
-                  aria-label="Campo para inserir longitude"
-                  autocomplete="off"
-                />
-              </label>
-              <button type="submit" class="button-small" aria-label="Salvar coordenadas">
-                Salvar
-              </button>
-            </form> --->
-
-          <WorldMap on:select={(e) => {
-              // Quando o usuário clicar no mapa, sobrescreve latitude/longitude e selectedPoint
+            <WorldMap on:select={(e) => {
               latitude = e.detail.lat.toFixed(6);
               longitude = e.detail.lng.toFixed(6);
               selectedPoint = [e.detail.lat, e.detail.lng];
-          }} />
+            }} />
           </div>
-
           <div class="right">
             <ScatterPlot data={dataWithCost} />
-
             <button 
               class="button" 
               size="long" 
@@ -296,7 +244,6 @@
         </div>
 
       {:else if currentSlide === 3}
-        <!-- Slide 3: Explicação do cálculo de custos -->
         <h2 in:fly={{ y: -40, duration: 600 }} class="title">
           Como calculamos o <strong>preço por faculdade</strong>?
         </h2>
@@ -306,23 +253,12 @@
           (pode variar entre 3 a 6 anos!) e o VISA:
         </p>
         <div class="formula-container">
-          <pre class="formula">
-            <code>
-              <Tooltip text="Custo total do curso, incluindo mensalidade, aluguel e taxa de visto">total_cost</Tooltip> = <Tooltip text="Valor das mensalidades do curso, em dólares">tuition</Tooltip> + <Tooltip text="Taxa para emissão de visto de estudante">visaFee</Tooltip> + <Tooltip text="Aluguel mensal, em dólares">rent</Tooltip> * 12 * <Tooltip text="Duração do curso em anos">durationYears</Tooltip>
-            </code>
-          </pre>
-
+          <pre class="formula"><code><Tooltip text="Custo total do curso, incluindo mensalidade, aluguel e taxa de visto">total_cost</Tooltip> = <Tooltip text="Valor das mensalidades do curso, em dólares">tuition</Tooltip> + <Tooltip text="Taxa para emissão de visto de estudante">visaFee</Tooltip> + <Tooltip text="Aluguel mensal, em dólares">rent</Tooltip> * 12 * <Tooltip text="Duração do curso em anos">durationYears</Tooltip></code></pre>
           <p class="slide-text">
             O custo anual de vida estimado é em dólar, e é dado por:
           </p>
-
-          <pre class="formula">
-            <code>
-              <Tooltip text="Custo anual de vida, incluindo aluguel e seguro">           anual_cost</Tooltip> = (<Tooltip text="Valor do aluguel mensal, em dólares">rent</Tooltip> + <Tooltip text="Seguro saúde ou de vida, obrigatório em alguns países">insurance</Tooltip>) * 12
-            </code>
-          </pre>
+          <pre class="formula"><code><Tooltip text="Custo anual de vida, incluindo aluguel e seguro">      anual_cost</Tooltip> = (<Tooltip text="Valor do aluguel mensal, em dólares">rent</Tooltip> + <Tooltip text="Seguro saúde ou de vida, obrigatório em alguns países">insurance</Tooltip>) * 12</code></pre>
         </div>
-
         <button
           class="button"
           size="long"
@@ -344,50 +280,28 @@
             <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
               Gráfico de barras mostrando custos por país e programa para facilitar a comparação.
             </p>
-            <!-- Filtro de país -->
             <label for="country-select" class="slide-text">Filtrar por país:</label>
-            <select
-              id="country-select"
-              bind:value={selectedCountry}
-              class="coord-form"
-              in:scale={{ duration: 400, delay: 300 }}
-            >
+            <select id="country-select" bind:value={selectedCountry} class="coord-form" in:scale={{ duration: 400, delay: 300 }}>
               <option value="">Todos</option>
               {#each countries as country}
                 <option value={country}>{country}</option>
               {/each}
             </select>
             <label for="program-select" class="slide-text">Filtrar por curso:</label>
-            <select
-              id="program-select"
-              bind:value={selectedProgram}
-              class="coord-form"
-              in:scale={{ duration: 400, delay: 300 }}
-            >
+            <select id="program-select" bind:value={selectedProgram} class="coord-form" in:scale={{ duration: 400, delay: 300 }}>
               <option value="">Todos</option>
               {#each programs as program}
                 <option value={program}>{program}</option>
               {/each}
             </select>
-
           </div>
-
           <div class="right">
-
-            <!-- Passa os dados já filtrados ao BarChart -->
             {#if filteredEducation.length}
               <BarChart data={filteredEducation} />
             {:else}
               <p>Sem dados para esse país.</p>
             {/if}
-
-            <button
-              class="button"
-              size="long"
-              on:click={next}
-              aria-label="Avançar para o próximo slide"
-              in:scale={{ duration: 400, delay: 600 }}
-            >
+            <button class="button" size="long" on:click={next} aria-label="Avançar para o próximo slide" in:scale={{ duration: 400, delay: 600 }}>
               <div id="background"></div>
               <div id="text">Próximo →</div>
               <div id="hitbox"></div>
@@ -398,24 +312,19 @@
       {:else if currentSlide === 5}
         <div class="left-right-container">
           <div class="left">
-            <h2
-              in:fly={{ y: -40, duration: 600 }}
-              class="title"
-            >
+            <h2 in:fly={{ y: -40, duration: 600 }} class="title">
               Visualização <strong>Mapa Mundial</strong>
             </h2>
             <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
               Veja a distribuição geográfica dos custos educacionais em um mapa interativo.
             </p>
           </div>
-
           <div class="right">
             {#if educationData.length}
               <WorldFun2 data={educationData} />
             {:else}
               <p>Carregando dados...</p>
             {/if}
-
             <button class="button" size="long" on:click={next} aria-label="Avançar para o próximo slide" in:scale={{ duration: 400, delay: 600 }}>
               <div id="background"></div>
               <div id="text">Próximo →</div>
@@ -427,10 +336,46 @@
       {:else if currentSlide === 6}
         <div class="left-right-container">
           <div class="left">
-            <h2
-              in:fly={{ y: -40, duration: 600 }}
-              class="title"
-            >
+            <h2 in:fly={{ y: -40, duration: 600 }} class="title">
+              Análise Interativa: <strong>Continente & Custo</strong>
+            </h2>
+            <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
+              Clique em um continente no gráfico de barras para filtrar a distribuição de custos por país no gráfico à direita. Clique novamente para limpar a seleção.
+            </p>
+            <div in:scale={{ duration: 500, delay: 400 }}>
+              {#if dataWithCost.length}
+                <ContinentBarChart
+                  data={dataWithCost}
+                  on:continentSelect={handleContinentSelect}
+                  on:colorsGenerated={handleColorsGenerated}
+                  selected={selectedContinent}
+                />
+              {:else}
+                <p>Carregando dados do gráfico...</p>
+              {/if}
+            </div>
+          </div>
+          <div class="right">
+            {#if filteredDataForBoxplot.length}
+              <CountryCostBoxplot 
+                data={filteredDataForBoxplot} 
+                colors={continentColorMap} 
+              />
+            {:else}
+              <p>Nenhum dado para exibir. Selecione um continente.</p>
+            {/if}
+            <button class="button" size="long" on:click={next} aria-label="Avançar para o próximo slide" in:scale={{ duration: 400, delay: 600 }} style="margin-top: 1rem;">
+              <div id="background"></div>
+              <div id="text">Próximo →</div>
+              <div id="hitbox"></div>
+            </button>
+          </div>
+        </div>
+
+      {:else if currentSlide === 7}
+        <div class="left-right-container">
+          <div class="left">
+            <h2 in:fly={{ y: -40, duration: 600 }} class="title">
               Conclusão & Próximos Passos
             </h2>
             <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
@@ -440,21 +385,19 @@
               Obrigado por acompanhar! 🌍🎓
             </p>
           </div>
-
           <div class="right">
-              <img
-                src="images/books_end.jpg"
-                alt="Livros Desenhos"
-                class="illustration-below"
-                in:fly={{ x: -100, duration: 800, delay: 500 }}
-              />
+            <img
+              src="images/books_end.jpg"
+              alt="Livros Desenhos"
+              class="illustration-below"
+              in:fly={{ x: -100, duration: 800, delay: 500 }}
+            />
           </div>
         </div>
       {/if}
     </div>
   {/key}
 </div>
-
 
 <footer style="display: flex; justify-content: center; gap: 12px; padding: 1em; background: #f5f5f7;">
   <div id="select" role="tablist" aria-label="Navegação entre slides">
@@ -465,7 +408,8 @@
       '3. "How to?"',
       '4. Comparação Geral',
       '5. Faculdades pelo Mundo',
-      '6. Conclusão'
+      '6. Análise Interativa',
+      '7. Conclusão'
     ] as label, i}
       <button
         role="tab"
@@ -476,8 +420,9 @@
         class="dot"
         on:click={() => goToSlide(i)}
         on:keydown={(e) => {
-          if (e.key === 'ArrowRight') goToSlide((i + 1) % 5);
-          if (e.key === 'ArrowLeft') goToSlide((i + 4) % 5);
+          const totalSlides = 8;
+          if (e.key === 'ArrowRight') goToSlide((i + 1) % totalSlides);
+          if (e.key === 'ArrowLeft') goToSlide((i - 1 + totalSlides) % totalSlides);
         }}
         tabindex={currentSlide === i ? '0' : '-1'}
         title={label}
@@ -489,6 +434,7 @@
 </footer>
 
 <style>
+  /* SEU CSS PERMANECE O MESMO */
   .slide {
     display: flex;
     flex-direction: column;
@@ -501,7 +447,6 @@
     margin-inline: auto;
     user-select: none;
     position: relative;
-    /* overflow: hidden; */
   }
 
   .title {
@@ -598,7 +543,6 @@
     background: #2980b9;
   }
 
-  /* Seu CSS para os botões longos na main */
   button.button[size=long] {
     position: relative;
     width: 400px;
@@ -687,7 +631,6 @@
     transform: scale(1.15);
   }
 
-  /* Tooltip aprimorado para os dots */
   #select .dot[title]:hover::after {
     content: attr(title);
     position: absolute;
@@ -719,7 +662,6 @@
     z-index: 20;
   }
 
-  /* Screen reader only */
   .sr-only {
     position: absolute !important;
     width: 1px !important;
@@ -774,10 +716,6 @@
   }
 }
 
-  .illustration-below {
-    max-width: 300px;
-    margin-top: 1rem;
-  }
   .stats-grid {
     display: flex;
     justify-content: center;
@@ -804,7 +742,7 @@
   .formula-container {
     margin: 2rem auto;
     max-width: 800px;
-    padding: 0 1rem; /* para não colar nas bordas em telas pequenas */
+    padding: 0 1rem;
 }
 
 .formula {
@@ -824,5 +762,4 @@
     transform: scale(1.02);
     box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
 }
-
 </style>

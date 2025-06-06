@@ -18,6 +18,7 @@
   let educationData = [];
   let dataWithCost = [];
   let currentSlide = 0;
+  let transitionDirection = 1; // 1 para próximo, -1 para anterior
 
   // Variáveis para filtros e interações
   let latitude = '';
@@ -103,12 +104,19 @@
   
   // Funções de Navegação
   function next() {
-    if (currentSlide < 7) currentSlide += 1;
+    if (currentSlide < 7) {
+      transitionDirection = 1;
+      currentSlide += 1;
+    }
   }
   function prev() {
-    if (currentSlide > 0) currentSlide -= 1;
+    if (currentSlide > 0) {
+      transitionDirection = -1;
+      currentSlide -= 1;
+    }
   }
   function goToSlide(i) {
+    transitionDirection = i > currentSlide ? 1 : -1;
     currentSlide = i;
   }
 
@@ -137,8 +145,8 @@
 <div class="slide" aria-live="polite" role="region" aria-label="Apresentação de slides">
   {#key currentSlide}
     <div
-      in:fly={{ x: 800, duration: 600 }}
-      out:fly={{ x: -800, duration: 600 }}
+      in:fly={{ x: 800 * transitionDirection, duration: 600, delay: 100 }}
+      out:fly={{ x: -800 * transitionDirection, duration: 600 }}
       style="width: 100%; position: absolute; top: 10;"
     >
       {#if currentSlide === 0}
@@ -160,17 +168,6 @@
             in:fly={{ x: -100, duration: 800, delay: 500 }}
           />
         </div>
-        <button
-          class="button"
-          size="long"
-          on:click={next}
-          aria-label="Avançar para o próximo slide"
-          in:scale={{ duration: 400, delay: 600 }}
-        >
-          <div id="background"></div>
-          <div id="text">Próximo →</div>
-          <div id="hitbox"></div>
-        </button>
 
       {:else if currentSlide === 1}
         <h2 in:fly={{ y: -40, duration: 600 }} class="title">
@@ -198,17 +195,6 @@
           Na base de dados você encontra não só informações sobre a faculdade, mas também sobre
           o custo de vida do país, o câmbio (em relação ao dólar), custo médio de aluguel, etc..
         </p>
-        <button
-          class="button"
-          size="long"
-          on:click={next}
-          aria-label="Avançar para o próximo slide"
-          in:scale={{ duration: 400, delay: 600 }}
-        >
-          <div id="background"></div>
-          <div id="text">Próximo →</div>
-          <div id="hitbox"></div>
-        </button>
 
       {:else if currentSlide === 2}
         <div class="left-right-container">
@@ -228,18 +214,6 @@
           </div>
           <div class="right">
             <ScatterPlot data={dataWithCost} />
-            <button 
-              class="button" 
-              size="long" 
-              on:click={next} 
-              aria-label="Avançar para o próximo slide" 
-              in:scale={{ duration: 400, delay: 600 }}
-              style="margin-top: 2rem;"
-            >
-              <div id="background"></div>
-              <div id="text">Próximo →</div>
-              <div id="hitbox"></div>
-            </button>
           </div>
         </div>
 
@@ -259,17 +233,6 @@
           </p>
           <pre class="formula"><code><Tooltip text="Custo anual de vida, incluindo aluguel e seguro">      anual_cost</Tooltip> = (<Tooltip text="Valor do aluguel mensal, em dólares">rent</Tooltip> + <Tooltip text="Seguro saúde ou de vida, obrigatório em alguns países">insurance</Tooltip>) * 12</code></pre>
         </div>
-        <button
-          class="button"
-          size="long"
-          on:click={next}
-          aria-label="Avançar para o próximo slide"
-          in:scale={{ duration: 400, delay: 1000 }}
-        >
-          <div id="background"></div>
-          <div id="text">Próximo →</div>
-          <div id="hitbox"></div>
-        </button>
 
       {:else if currentSlide === 4}
         <div class="left-right-container">
@@ -301,11 +264,6 @@
             {:else}
               <p>Sem dados para esse país.</p>
             {/if}
-            <button class="button" size="long" on:click={next} aria-label="Avançar para o próximo slide" in:scale={{ duration: 400, delay: 600 }}>
-              <div id="background"></div>
-              <div id="text">Próximo →</div>
-              <div id="hitbox"></div>
-            </button>
           </div>
         </div>
 
@@ -325,11 +283,6 @@
             {:else}
               <p>Carregando dados...</p>
             {/if}
-            <button class="button" size="long" on:click={next} aria-label="Avançar para o próximo slide" in:scale={{ duration: 400, delay: 600 }}>
-              <div id="background"></div>
-              <div id="text">Próximo →</div>
-              <div id="hitbox"></div>
-            </button>
           </div>
         </div>
 
@@ -364,11 +317,6 @@
             {:else}
               <p>Nenhum dado para exibir. Selecione um continente.</p>
             {/if}
-            <button class="button" size="long" on:click={next} aria-label="Avançar para o próximo slide" in:scale={{ duration: 400, delay: 600 }} style="margin-top: 1rem;">
-              <div id="background"></div>
-              <div id="text">Próximo →</div>
-              <div id="hitbox"></div>
-            </button>
           </div>
         </div>
 
@@ -390,7 +338,7 @@
               src="images/books_end.jpg"
               alt="Livros Desenhos"
               class="illustration-below"
-              in:fly={{ x: -100, duration: 800, delay: 500 }}
+              in:fly={{ x: 100, duration: 800, delay: 500 }}
             />
           </div>
         </div>
@@ -399,48 +347,65 @@
   {/key}
 </div>
 
-<footer style="display: flex; justify-content: center; gap: 12px; padding: 1em; background: #f5f5f7;">
-  <div id="select" role="tablist" aria-label="Navegação entre slides">
-    {#each [
-      '0. Introdução',
-      '1. Base de Dados',
-      '2. Custo e Distância',
-      '3. "How to?"',
-      '4. Comparação Geral',
-      '5. Faculdades pelo Mundo',
-      '6. Análise Interativa',
-      '7. Conclusão'
-    ] as label, i}
-      <button
-        role="tab"
-        aria-selected={currentSlide === i}
-        aria-controls={`slide-${i}`}
-        id={`tab-${i}`}
-        class:selected={currentSlide === i}
-        class="dot"
-        on:click={() => goToSlide(i)}
-        on:keydown={(e) => {
-          const totalSlides = 8;
-          if (e.key === 'ArrowRight') goToSlide((i + 1) % totalSlides);
-          if (e.key === 'ArrowLeft') goToSlide((i - 1 + totalSlides) % totalSlides);
-        }}
-        tabindex={currentSlide === i ? '0' : '-1'}
-        title={label}
-      >
-        <span class="sr-only">Slide {i + 1}</span>
-      </button>
-    {/each}
-  </div>
-</footer>
+<div class="bottom-navigation">
+    <div class="nav-button-wrapper">
+        {#if currentSlide > 0}
+            <button class="button" size="long" on:click={prev} aria-label="Voltar para o slide anterior" transition:fade>
+                <div id="background"></div>
+                <div id="text">← Anterior</div>
+                <div id="hitbox"></div>
+            </button>
+        {/if}
+    </div>
+
+    <footer style="background: transparent;">
+        <div id="select" role="tablist" aria-label="Navegação entre slides">
+            {#each Array(8) as _, i}
+                <button
+                    role="tab"
+                    aria-selected={currentSlide === i}
+                    aria-controls={`slide-${i}`}
+                    id={`tab-${i}`}
+                    class:selected={currentSlide === i}
+                    class="dot"
+                    on:click={() => goToSlide(i)}
+                    on:keydown={(e) => {
+                        const totalSlides = 8;
+                        if (e.key === 'ArrowRight') goToSlide((i + 1) % totalSlides);
+                        if (e.key === 'ArrowLeft') goToSlide((i - 1 + totalSlides) % totalSlides);
+                    }}
+                    tabindex={currentSlide === i ? '0' : '-1'}
+                    title={`Slide ${i}: ${[
+                        'Introdução', 'Base de Dados', 'Custo e Distância', '"How to?"',
+                        'Comparação Geral', 'Faculdades pelo Mundo', 'Análise Interativa', 'Conclusão'
+                    ][i]}`}
+                >
+                    <span class="sr-only">Slide {i + 1}</span>
+                </button>
+            {/each}
+        </div>
+    </footer>
+
+    <div class="nav-button-wrapper">
+        {#if currentSlide < 7}
+            <button class="button" size="long" on:click={next} aria-label="Avançar para o próximo slide" transition:fade>
+                <div id="background"></div>
+                <div id="text">Próximo →</div>
+                <div id="hitbox"></div>
+            </button>
+        {/if}
+    </div>
+</div>
+
 
 <style>
-  /* SEU CSS PERMANECE O MESMO */
+  /* ESTILOS ANTERIORES PERMANECEM OS MESMOS */
   .slide {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    min-height: 80vh;
+    min-height: 85vh; /* Aumentado para dar espaço para a navegação inferior */
     text-align: center;
     padding: 20px;
     max-width: 120ch;
@@ -545,8 +510,8 @@
 
   button.button[size=long] {
     position: relative;
-    width: 400px;
-    height: 50px;
+    width: 300px; /* Largura aumentada */
+    height: 55px; /* Altura aumentada */
     border: none;
     background: none;
     cursor: pointer;
@@ -568,8 +533,8 @@
     background-size: cover;
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    width: 400px;
-    height: 50px;
+    width: 100%;
+    height: 100%;
     opacity: 1;
     pointer-events: none;
     border-radius: 10px;
@@ -578,22 +543,23 @@
   button.button[size=long] #text {
     font-family: 'Comic Sans MS', cursive, sans-serif;
     position: relative;
-    width: 330px;
+    width: 90%;
     top: 0px;
     margin: 0 auto;
     color: #222;
     font-weight: 700;
-    font-size: 1.3rem;
+    font-size: 1.3rem; /* Fonte aumentada */
     user-select: none;
     text-shadow: 1px 1px 1px #eee;
+    line-height: 55px; /* Centraliza verticalmente com a nova altura */
   }
 
   button.button[size=long] #hitbox {
     position: absolute;
-    width: 345px;
-    height: 50px;
+    width: 95%;
+    height: 100%;
     top: 0;
-    left: 27px; 
+    left: 2.5%; /* Centralizado */
     pointer-events: auto;
     border-radius: 10px;
   }
@@ -606,7 +572,7 @@
   }
 
   #select .dot.selected,
-  #select .dot[selected] {
+  #select .dot[aria-selected="true"] {
     background: #34495e;
     box-shadow: 0 0 8px #34495eaa;
     border: none;
@@ -623,6 +589,7 @@
     cursor: pointer;
     background: transparent;
     transition: all 0.3s ease;
+    position: relative; /* Para o tooltip */
   }
 
   #select .dot:hover:not(.selected) {
@@ -639,7 +606,9 @@
     padding: 6px 10px;
     font-size: 14px;
     border-radius: 6px;
-    top: -38px;
+    bottom: 125%; /* Posição acima do dot */
+    left: 50%;
+    transform: translateX(-50%);
     white-space: nowrap;
     pointer-events: none;
     opacity: 1;
@@ -653,7 +622,8 @@
     position: absolute;
     border: 6px solid transparent;
     border-top-color: #34495e;
-    top: -18px;
+    bottom: 125%;
+    margin-bottom: -12px;
     left: 50%;
     transform: translateX(-50%);
     pointer-events: none;
@@ -677,8 +647,8 @@
     display: flex;
     flex-direction: row;
     gap: 2rem;
-    height: 100%;
-    align-items: start;
+    width: 100%;
+    align-items: center;
     justify-content: center;
     padding: 1rem 0;
     box-sizing: border-box;
@@ -702,14 +672,16 @@
   justify-content: flex-start;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 1024px) {
   .left-right-container {
     flex-direction: column;
+    align-items: center;
   }
   .left, .right {
-    max-width: 100%;
+    max-width: 90%;
     flex: 1 1 100%;
     text-align: center;
+    align-items: center;
   }
   .left {
     margin-bottom: 1.5rem;
@@ -721,6 +693,7 @@
     justify-content: center;
     gap: 2rem;
     margin: 2rem 0;
+    flex-wrap: wrap; /* Para telas menores */
   }
   .stat-box {
     background: #f5f5f5;
@@ -748,7 +721,7 @@
 .formula {
     background: #272c34;
     color: #f8f8f2;
-    padding: 0rem 6rem;
+    padding: 1rem 2rem; /* Padding ajustado */
     border-radius: 8px;
     font-family: 'Fira Code', monospace;
     margin: 1rem 0;
@@ -761,5 +734,52 @@
 .formula:hover {
     transform: scale(1.02);
     box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* NOVOS ESTILOS PARA NAVEGAÇÃO INFERIOR */
+.bottom-navigation {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1em 2em;
+    background: #f5f5f7;
+    box-sizing: border-box;
+    z-index: 1000;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.08);
+}
+
+.nav-button-wrapper {
+    flex: 1;
+    display: flex;
+}
+
+.nav-button-wrapper:first-child {
+    justify-content: flex-start;
+}
+
+.nav-button-wrapper:last-child {
+    justify-content: flex-end;
+}
+
+footer {
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .bottom-navigation {
+        padding: 0.5em;
+    }
+    .nav-button-wrapper .button {
+        display: none; /* Esconde botões grandes em telas pequenas */
+    }
+    footer {
+        width: 100%;
+        justify-content: center;
+    }
 }
 </style>

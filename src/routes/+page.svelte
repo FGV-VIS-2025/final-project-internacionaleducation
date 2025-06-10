@@ -9,6 +9,8 @@
   import WorldFun from '../lib/WorldFun.svelte';
   import WorldFun2 from '../lib/WorldFun2.svelte';
   import MapForScatter from '../lib/MapForScatter.svelte';
+  import PyramidScatter from '../lib/PyramidScatter.svelte';
+
   import Tooltip from '../lib/Tooltip.svelte';
   import ContinentBarChart from '../lib/ContinentBarChart.svelte';
   import CountryCostBoxplot from '../lib/CountryCostBoxplot.svelte';
@@ -52,6 +54,7 @@
         University: d.University,
         Program: d.Program,
         Level: d.Level,
+        Rank: d.world_rank,
         lat: d.lat,
         lng: d.lng,
         total_cost
@@ -123,7 +126,7 @@
   
   // Funções de Navegação
   function next() {
-    if (currentSlide < 7) {
+    if (currentSlide < 8) {
       transitionDirection = 1;
       currentSlide += 1;
     }
@@ -262,7 +265,7 @@
             <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
               Gráfico de barras mostrando custos por país e programa para facilitar a comparação.
             </p>
-            <label for="level-select" class="slide-text">Filtrar por nível de curso:</label>
+            <label for="level-select" class="slide-text" style="margin-bottom: 10px;">Filtrar por nível de curso:</label>
             <select id="level-select" bind:value={selectedLevel} in:scale={{ duration: 400, delay: 300 }}>
               <option value="">Todos</option>
               <option value="Bachelor">Bacharel</option>
@@ -270,7 +273,7 @@
               <option value="PhD">PhD</option>
             </select>
 
-            <label for="country-select" class="slide-text">Filtrar por país:</label>
+            <label for="country-select" class="slide-text" style="margin-bottom: 10px;">Filtrar por país:</label>
             <select id="country-select" bind:value={selectedCountry} in:scale={{ duration: 400, delay: 300 }}>
               <option value="">Todos</option>
               {#each countries as country}
@@ -278,7 +281,7 @@
               {/each}
             </select>
 
-            <label for="program-select" class="slide-text">Filtrar por curso:</label>
+            <label for="program-select" class="slide-text" style="margin-bottom: 10px;">Filtrar por curso:</label>
             <select id="program-select" bind:value={selectedProgram} in:scale={{ duration: 400, delay: 300 }}>
               <option value="">Todos</option>
               {#each programs as program}
@@ -297,10 +300,69 @@
         </div>
 
       {:else if currentSlide === 5}
+        <h2 in:fly={{ y: -40, duration: 600 }} class="title">
+          Estudar nos EUA... <strong>Como pagar!?</strong>
+        </h2>
+        <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
+          Observando os gráficos anteriores, podemos ver uma disparidade de custo
+          nas universidades estadounidenses até em relação a grandes faculdades 
+          europeias e asiáticas. Comparando o custo médio total:
+        </p>
+        <div class="stats-grid" in:scale={{ duration: 500, delay: 400 }}>
+          <div class="stat-box">
+            <div class="stat-number">~120k USD</div>
+            <div class="stat-label">Estados Unidos</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number">~65k USD</div>
+            <div class="stat-label">Europa</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number">~26k USD</div>
+            <div class="stat-label">China/Japão/Coréia</div>
+          </div>
+        </div>
+        <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
+          Olhando para os dados, é claro que estudar nos EUA demanda um <strong>poder financeiro</strong>
+          muito maior. Porém, será que esse preço todo vale a pena? Será que a educação é
+          de <strong>maior qualidade</strong>?
+        </p>
+
+      {:else if currentSlide === 6}
+        <h2 in:fly={{ y: -40, duration: 600 }} class="title">
+          Dados não <strong>Mentem</strong>
+        </h2>
+          {#if educationData.length}
+            <PyramidScatter data={dataWithCost} />
+          {:else}
+            <p>Carregando dados...</p>
+          {/if}
+        <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
+          Ainda que o custo seja maior alto, podemos ver que <strong>sim</strong>
+          as melhores e mais prestigiosas faculdades do mundo <strong>tendem</strong>
+          a estar nos Estados Unidos (o preço pode valer a pena!)
+        </p>
+
+      {:else if currentSlide === 7}
+        <h2 in:fly={{ y: -40, duration: 600 }} class="title">
+          Dados não <strong>Mentem</strong>
+        </h2>
+          {#if educationData.length}
+            <PyramidScatter data={dataWithCost} />
+          {:else}
+            <p>Carregando dados...</p>
+          {/if}
+        <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
+          Ainda que o custo seja maior alto, podemos ver que <strong>sim</strong>
+          as melhores e mais prestigiosas faculdades do mundo <strong>tendem</strong>
+          a estar nos Estados Unidos (o preço pode valer a pena!)
+        </p>
+
+      {:else if currentSlide === 8}
         <div class="left-right-container">
           <div class="left">
             <h2 in:fly={{ y: -40, duration: 600 }} class="title">
-              Visualização <strong>Mapa Mundial</strong>
+              <strong>Mapa Mundial</strong> de Universidades
             </h2>
             <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
               Veja a distribuição geográfica dos custos educacionais em um mapa interativo.
@@ -315,11 +377,11 @@
           </div>
         </div>
 
-      {:else if currentSlide === 6}
+      {:else if currentSlide === 9}
         <div class="left-right-container">
           <div class="left">
             <h2 in:fly={{ y: -40, duration: 600 }} class="title">
-              Análise Interativa: <strong>Continente & Custo</strong>
+              Análise por Espaço: <strong>Continente & Custo</strong>
             </h2>
             <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
               Clique em um continente no gráfico de barras para filtrar a distribuição de custos por país no gráfico à direita. Clique novamente para limpar a seleção.
@@ -349,7 +411,7 @@
           </div>
         </div>
 
-      {:else if currentSlide === 7}
+      {:else if currentSlide === 10}
         <div class="left-right-container">
           <div class="left">
             <h2 in:fly={{ y: -40, duration: 600 }} class="title">
@@ -389,7 +451,7 @@
 
     <footer style="background: transparent;">
         <div id="select" role="tablist" aria-label="Navegação entre slides">
-            {#each Array(8) as _, i}
+            {#each Array(9) as _, i}
                 <button
                     role="tab"
                     aria-selected={currentSlide === i}
@@ -405,8 +467,9 @@
                     }}
                     tabindex={currentSlide === i ? '0' : '-1'}
                     title={`Slide ${i}: ${[
-                        'Introdução', 'Base de Dados', 'Custo e Distância', '"How to?"',
-                        'Comparação Geral', 'Faculdades pelo Mundo', 'Análise Interativa', 'Conclusão'
+                        'Introdução', 'Base de Dados', 'Custo e Distância', '"Get the Money!"',
+                        'Comparação Geral', 'Desigualdade...?', 'Na verdade...', 
+                        'Faculdades pelo Mundo', 'Análise Interativa', 'Conclusão'
                     ][i]}`}
                 >
                     <span class="sr-only">Slide {i + 1}</span>
@@ -473,6 +536,10 @@
   .slide-text em {
     font-style: italic;
     color: #2980b9;
+  }
+
+  .slide-text #level-select {
+    margin-bottom: 10px;
   }
 
   .emphasized {

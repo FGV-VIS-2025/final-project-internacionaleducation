@@ -80,14 +80,14 @@
     }
   }
 
-  $: countries = Array.from(new Set(educationData.map(d => d.Country))).sort();
-  $: programs = Array.from(new Set(educationData.map(d => d.Program))).sort();
+  $: countries = Array.from(new Set(educationData.filter(d => !selectedProgram || d.Program === selectedProgram).map(d => d.Country))).sort();
+  $: programs = Array.from(new Set(educationData.filter(d => !selectedCountry || d.Country === selectedCountry).map(d => d.Program))).sort();
 
   $: filteredEducation = educationData.filter(d =>
-    (!selectedCountry || d.Country === selectedCountry) &&
-    (!selectedProgram || d.Program === selectedProgram)
+      (!selectedCountry || d.Country === selectedCountry) &&
+      (!selectedProgram || d.Program === selectedProgram)
   );
-  
+    
   $: filteredDataForBoxplot = selectedContinent
     ? dataWithCost.filter(d => d.Continent === selectedContinent)
     : dataWithCost;
@@ -200,7 +200,7 @@
         <div class="left-right-container">
           <div class="left">
             <h2 in:fly={{ y: -40, duration: 600 }} class="title">
-              Insira sua <strong>localização</strong>
+              Encontre as mais próximas de <strong>você!</strong>
             </h2>
             <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
               Para analisar as faculdades mais próximas de você, <strong>clique no mapa</strong> abaixo
@@ -238,20 +238,20 @@
         <div class="left-right-container">
           <div class="left">
             <h2 in:fly={{ y: -40, duration: 600 }} class="title">
-              Visualização <strong>BarChart</strong>
+              Comparação de <strong>Custos Educacionais</strong>
             </h2>
             <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
               Gráfico de barras mostrando custos por país e programa para facilitar a comparação.
             </p>
             <label for="country-select" class="slide-text">Filtrar por país:</label>
-            <select id="country-select" bind:value={selectedCountry} class="coord-form" in:scale={{ duration: 400, delay: 300 }}>
+            <select id="country-select" bind:value={selectedCountry} in:scale={{ duration: 400, delay: 300 }}>
               <option value="">Todos</option>
               {#each countries as country}
                 <option value={country}>{country}</option>
               {/each}
             </select>
             <label for="program-select" class="slide-text">Filtrar por curso:</label>
-            <select id="program-select" bind:value={selectedProgram} class="coord-form" in:scale={{ duration: 400, delay: 300 }}>
+            <select id="program-select" bind:value={selectedProgram} in:scale={{ duration: 400, delay: 300 }}>
               <option value="">Todos</option>
               {#each programs as program}
                 <option value={program}>{program}</option>
@@ -781,5 +781,37 @@ footer {
         width: 100%;
         justify-content: center;
     }
+}
+
+#country-select, #program-select {
+  width: 100%;
+  padding: 12px 16px;
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+  font-size: 16px;
+  color: #333;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Efeito quando o select está em foco */
+#country-select:focus, #program-select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.4);
+  outline: none;
+}
+
+#country-select, #program-select option {
+  font-size: 16px;
+  color: #333;
+}
+
+#country-select:hover, #program-select:hover{
+  border-color: #0056b3;
+}
+
+#country-select, #program-select{
+  transition: all 0.3s ease;
 }
 </style>

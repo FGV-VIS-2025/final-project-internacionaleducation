@@ -24,8 +24,6 @@
   let latitude = '';
   let longitude = '';
   let selectedPoint = [0, 0];
-  let selectedCountry = '';
-  let selectedProgram = '';
   let selectedContinent = null;
   let continentColorMap = {};
 
@@ -53,6 +51,7 @@
         Continent: d.Continent,
         University: d.University,
         Program: d.Program,
+        Level: d.Level,
         lat: d.lat,
         lng: d.lng,
         total_cost
@@ -80,12 +79,32 @@
     }
   }
 
-  $: countries = Array.from(new Set(educationData.filter(d => !selectedProgram || d.Program === selectedProgram).map(d => d.Country))).sort();
-  $: programs = Array.from(new Set(educationData.filter(d => !selectedCountry || d.Country === selectedCountry).map(d => d.Program))).sort();
+  // Variáveis para armazenar os valores selecionados
+  let selectedLevel = "";
+  let selectedCountry = "";
+  let selectedProgram = "";
 
-  $: filteredEducation = educationData.filter(d =>
+  // Filtra os países com base no nível, programa e país selecionados
+  $: countries = Array.from(new Set(
+    educationData.filter(d =>
+      (!selectedProgram || d.Program === selectedProgram) &&
+      (!selectedLevel || d.Level === selectedLevel)  
+    ).map(d => d.Country)
+  )).sort();
+
+  // Filtra os programas com base no país, nível e programa selecionados
+  $: programs = Array.from(new Set(
+    educationData.filter(d =>
       (!selectedCountry || d.Country === selectedCountry) &&
-      (!selectedProgram || d.Program === selectedProgram)
+      (!selectedLevel || d.Level === selectedLevel)  
+    ).map(d => d.Program)
+  )).sort();
+
+  // Filtra os dados com base no país, programa e nível selecionados
+  $: filteredEducation = educationData.filter(d =>
+    (!selectedCountry || d.Country === selectedCountry) &&
+    (!selectedProgram || d.Program === selectedProgram) &&
+    (!selectedLevel || d.Level === selectedLevel) 
   );
     
   $: filteredDataForBoxplot = selectedContinent
@@ -243,6 +262,14 @@
             <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
               Gráfico de barras mostrando custos por país e programa para facilitar a comparação.
             </p>
+            <label for="level-select" class="slide-text">Filtrar por nível de curso:</label>
+            <select id="level-select" bind:value={selectedLevel} in:scale={{ duration: 400, delay: 300 }}>
+              <option value="">Todos</option>
+              <option value="Bachelor">Bacharel</option>
+              <option value="Master">Mestrado</option>
+              <option value="PhD">PhD</option>
+            </select>
+
             <label for="country-select" class="slide-text">Filtrar por país:</label>
             <select id="country-select" bind:value={selectedCountry} in:scale={{ duration: 400, delay: 300 }}>
               <option value="">Todos</option>
@@ -250,6 +277,7 @@
                 <option value={country}>{country}</option>
               {/each}
             </select>
+
             <label for="program-select" class="slide-text">Filtrar por curso:</label>
             <select id="program-select" bind:value={selectedProgram} in:scale={{ duration: 400, delay: 300 }}>
               <option value="">Todos</option>
@@ -258,6 +286,7 @@
               {/each}
             </select>
           </div>
+          
           <div class="right">
             {#if filteredEducation.length}
               <BarChart data={filteredEducation} />
@@ -783,10 +812,9 @@ footer {
     }
 }
 
-#country-select, #program-select {
+#country-select, #program-select, #level-select {
   width: 100%;
   padding: 12px 16px;
-  margin-top: 10px;
   border: 1px solid #ddd;
   border-radius: 8px;
   background-color: #fff;
@@ -796,22 +824,22 @@ footer {
 }
 
 /* Efeito quando o select está em foco */
-#country-select:focus, #program-select:focus {
+#country-select:focus, #program-select:focus, #level-select:focus {
   border-color: #007bff;
   box-shadow: 0 0 5px rgba(0, 123, 255, 0.4);
   outline: none;
 }
 
-#country-select, #program-select option {
+#country-select, #program-select, #level-select option {
   font-size: 16px;
   color: #333;
 }
 
-#country-select:hover, #program-select:hover{
+#country-select:hover, #program-select:hover, #level-select:hover{
   border-color: #0056b3;
 }
 
-#country-select, #program-select{
+#country-select, #program-select, #level-select{
   transition: all 0.3s ease;
 }
 </style>

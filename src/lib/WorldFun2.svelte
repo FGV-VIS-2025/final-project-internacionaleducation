@@ -180,12 +180,10 @@
             .html(`
               <strong>${d.University}</strong><br/>
               ${d.City}, ${d.Country}<br/>
-              Curso: ${d.Program} (${d.Level})<br/>
-              Duração: ${d.Duration_Years} anos<br/>
-              Mensalidade: $${d.Tuition_USD}<br/>
+              Tuition (média): $${d.Tuition_USD}<br/>
               Aluguel: $${d.Rent_USD}<br/>
               Seguro: $${d.Insurance_USD}<br/>
-              Câmbio: ${d.Exchange_Rate}
+              Câmbio (USD): ${d.Exchange_Rate}
             `)
             .style("left", `${x + 15}px`)
             .style("top", `${y + 15}px`)
@@ -368,12 +366,10 @@
           .html(`
             <strong>${d.University}</strong><br/>
             ${d.City}, ${d.Country}<br/>
-            Curso: ${d.Program} (${d.Level})<br/>
-            Duração: ${d.Duration_Years} anos<br/>
-            Mensalidade: $${d.Tuition_USD}<br/>
+            Tuition (média): $${d.Tuition_USD}<br/>
             Aluguel: $${d.Rent_USD}<br/>
             Seguro: $${d.Insurance_USD}<br/>
-            Câmbio: ${d.Exchange_Rate}
+            Câmbio (USD): ${d.Exchange_Rate}
           `)
           .style("left", `${x + 15}px`)
           .style("top", `${y + 15}px`)

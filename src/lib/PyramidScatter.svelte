@@ -62,7 +62,7 @@
 
     const margin = { top: 10, right: 30, bottom: 10, left: 80 },
           width = 1000 - margin.left - margin.right,
-          height = 350 - margin.top - margin.bottom;
+          height = 300 - margin.top - margin.bottom;
 
     const svg = d3.select(container)
       .html('')  // Limpa o container antes de desenhar
@@ -120,7 +120,7 @@
         .enter()
         .append('circle')
         .attr('cx', d => xScale(d.Rank) * (2.7 - layerHeight/6))  // Posição no eixo X de acordo com o ranking
-        .attr('cy', (d, index) => layerY + (index - Math.floor(layerHeight)) * (50 - layerHeight * 1.5) + 220 - layerY * 0.3)  // Ajuste Y para cada ponto
+        .attr('cy', (d, index) => (layerY + (index - Math.floor(layerHeight)) * (50 - layerHeight * 1.5) + 230 - layerY * 0.3) / 1.2) // Ajuste Y para cada ponto
         .attr('r', d => d.cost * 0.0002)  
         .attr('fill', d => d.Country === 'USA' ? 'blue' : 'gray') 
         .attr('opacity', 0.7)

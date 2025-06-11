@@ -142,6 +142,15 @@
     currentSlide = i;
   }
 
+  let userResponse = ''; // Variável para armazenar a resposta do usuário
+  
+  // Função que altera a resposta do usuário e avança o slide
+  function handleUserResponse(response) {
+    userResponse = response;
+    // Avança para o próximo slide
+    next();
+  }
+
   // Lifecycle
   onMount(() => {
     async function loadData() {
@@ -330,35 +339,107 @@
 
       {:else if currentSlide === 6}
         <h2 in:fly={{ y: -40, duration: 600 }} class="title">
-          Dados não <strong>Mentem</strong>
-        </h2>
-          {#if educationData.length}
-            <PyramidScatter data={dataWithCost} />
-          {:else}
-            <p>Carregando dados...</p>
-          {/if}
-        <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
-          Ainda que o custo seja maior alto, podemos ver que <strong>sim</strong>
-          as melhores e mais prestigiosas faculdades do mundo <strong>tendem</strong>
-          a estar nos Estados Unidos (o preço pode valer a pena!)
-        </p>
+              Ranking Mundial de Universidades
+            </h2>
+            <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
+              O ranking mundial de universidades é uma lista que leva em conta <strong>diversos parâmetros</strong> 
+              que ajudam a determinar a posição das instituições de ensino no cenário global, como:
+            </p>
+            
+            <div class="stats-carousel" in:scale={{ duration: 500, delay: 400 }}>
+              {#each [
+                { title: 'Quality of Education', desc: 'Qualidade do Ensino' },
+                { title: 'Alumni Employment', desc: 'Emprego de Egressos' },
+                { title: 'Quality of Faculty', desc: 'Qualidade do Corpo Docente' },
+                { title: 'Publications', desc: 'Publicações' },
+                { title: 'Citations', desc: 'Citações' }
+              ] as item}
+                <div class="stat-item">
+                  <div class="stat-title">{item.title}</div>
+                  <div class="stat-desc">{item.desc}</div>
+                </div>
+              {/each}
+            </div>
+
+            <p class="slide-text" in:fly={{ y: 20, delay: 400, duration: 600 }}>
+              A partir disso, podemos definir quais universidades mais se destacam globalmente e/ou 
+              possuem os <strong>melhores pesquisadores</strong>. Ela é uma análise interessante a se adicionar, principalmente
+              para a análise do próximo slide. Será que as universidades norte americanas <strong>"se pagam?"</strong>
+            </p>
+
+            <div class="button-container">
+              <button class="button" size="long" on:click={() => handleUserResponse('yes')} in:scale={{ duration: 400, delay: 600 }}>
+                <div id="background"></div>
+                <div id="text">Sim, são as melhores.</div>
+                <div id="hitbox"></div>
+              </button>
+
+              <button class="button" size="long" on:click={() => handleUserResponse('no')} in:scale={{ duration: 400, delay: 600 }}>
+                <div id="background"></div>
+                <div id="text">Não, são caras demais!</div>
+                <div id="hitbox"></div>
+              </button>
+            </div>
 
       {:else if currentSlide === 7}
         <h2 in:fly={{ y: -40, duration: 600 }} class="title">
           Dados não <strong>Mentem</strong>
         </h2>
+        {#if userResponse === 'yes'}
+          <p class="slide-text" style="margin-bottom: 10px;" in:fly={{ y: 20, delay: 200, duration: 600 }}>
+            Sim! As melhores e mais prestigiosas faculdades do mundo, de fato, estão nos Estados Unidos. O preço pode valer a pena pela qualidade!
+          </p>
+        {:else}
+          <p class="slide-text" style="margin-bottom: 10px;" in:fly={{ y: 20, delay: 200, duration: 600 }}>
+            Não é bem assim! O custo é mais alto, mas a qualidade de ensino e infraestrutura de algumas universidades podem justificar seu preço.
+          </p>
+        {/if}
           {#if educationData.length}
             <PyramidScatter data={dataWithCost} />
           {:else}
             <p>Carregando dados...</p>
           {/if}
-        <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
-          Ainda que o custo seja maior alto, podemos ver que <strong>sim</strong>
-          as melhores e mais prestigiosas faculdades do mundo <strong>tendem</strong>
-          a estar nos Estados Unidos (o preço pode valer a pena!)
-        </p>
+        {#if userResponse === 'yes'}
+          <p class="slide-text" style="margin-bottom: 10px;" in:fly={{ y: 20, delay: 200, duration: 600 }}>
+            Como sua intuição falou, podemos ver que, principalmente no top 20, a maioria é americana, mostrando que pode ser
+            um bom caminho para pesquisadores com ambição.
+          </p>
+        {:else}
+          <p class="slide-text" style="margin-bottom: 10px;" in:fly={{ y: 20, delay: 200, duration: 600 }}>
+            Mesmo que você possa duvidar, a maioria das universidades no top 20 global é americana (ainda que, sim, sejam custosas)
+          </p>
+        {/if}
 
       {:else if currentSlide === 8}
+        <div class="left-right-container">
+          <div class="left">
+            <h2 in:fly={{ y: -40, duration: 600 }} class="title">
+              Análise Geral <strong>de Todas as Universidades</strong>
+            </h2>
+            <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
+              Agora que você já explorou o custo educacional ao redor do mundo no mapa anterior e pôde observar, 
+              de forma geral, as universidades mais prestigiosas globalmente e sua localização, sinta-se mais livre
+              com o próximo mapa. Nele, você pode olhar cada instituição em específico, útil para uma análise mais
+              individual!
+            </p>
+          </div>
+          <div class="right">
+            <p class="slide-text interactive" in:fly={{ y: 20, delay: 600, duration: 600 }}>
+              <strong>O mapa interativo a seguir</strong> mostra de forma clara e objetiva a distribuição global dos custos educacionais.
+              Clique, explore e descubra: como a sua cidade ou país se compara com o resto do mundo?
+            </p>
+
+            <img
+              src="images/books_end.jpg"
+              alt="Livros Desenhos"
+              class="illustration-below"
+              in:fly={{ x: 100, duration: 800, delay: 500 }}
+            />
+          </div>
+        </div>
+
+
+      {:else if currentSlide === 9}
         <div class="left-right-container">
           <div class="left">
             <h2 in:fly={{ y: -40, duration: 600 }} class="title">
@@ -377,7 +458,7 @@
           </div>
         </div>
 
-      {:else if currentSlide === 9}
+      {:else if currentSlide === 10}
         <div class="left-right-container">
           <div class="left">
             <h2 in:fly={{ y: -40, duration: 600 }} class="title">
@@ -411,7 +492,7 @@
           </div>
         </div>
 
-      {:else if currentSlide === 10}
+      {:else if currentSlide === 11}
         <div class="left-right-container">
           <div class="left">
             <h2 in:fly={{ y: -40, duration: 600 }} class="title">
@@ -451,7 +532,7 @@
 
     <footer style="background: transparent;">
         <div id="select" role="tablist" aria-label="Navegação entre slides">
-            {#each Array(9) as _, i}
+            {#each Array(12) as _, i}
                 <button
                     role="tab"
                     aria-selected={currentSlide === i}
@@ -461,15 +542,15 @@
                     class="dot"
                     on:click={() => goToSlide(i)}
                     on:keydown={(e) => {
-                        const totalSlides = 8;
+                        const totalSlides = 11;
                         if (e.key === 'ArrowRight') goToSlide((i + 1) % totalSlides);
                         if (e.key === 'ArrowLeft') goToSlide((i - 1 + totalSlides) % totalSlides);
                     }}
                     tabindex={currentSlide === i ? '0' : '-1'}
                     title={`Slide ${i}: ${[
                         'Introdução', 'Base de Dados', 'Custo e Distância', '"Get the Money!"',
-                        'Comparação Geral', 'Desigualdade...?', 'Na verdade...', 
-                        'Faculdades pelo Mundo', 'Análise Interativa', 'Conclusão'
+                        'Comparação Geral', 'Desigualdade...?', 'Ranking de Faculdades',  'Na verdade...',
+                        'Análise Geral', 'Faculdades pelo Mundo', 'Análise Interativa', 'Conclusão'
                     ][i]}`}
                 >
                     <span class="sr-only">Slide {i + 1}</span>
@@ -479,7 +560,7 @@
     </footer>
 
     <div class="nav-button-wrapper">
-        {#if currentSlide < 7}
+        {#if currentSlide < 11}
             <button class="button" size="long" on:click={next} aria-label="Avançar para o próximo slide" transition:fade>
                 <div id="background"></div>
                 <div id="text">Próximo →</div>
@@ -908,5 +989,50 @@ footer {
 
 #country-select, #program-select, #level-select{
   transition: all 0.3s ease;
+}
+
+.stats-carousel {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding: 1rem 0;
+}
+
+.stat-item {
+  flex: 0 0 auto;
+  background: #fff;
+  padding: 0.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  min-width: 180px;
+  text-align: center;
+}
+
+.stat-title {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.stat-desc {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.highlight {
+  font-weight: 700;
+  color: #007bff;
+}
+
+.interactive {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.interactive:hover {
+  color: #007bff;
+  cursor: pointer;
+  transition: color 0.3s ease;
 }
 </style>

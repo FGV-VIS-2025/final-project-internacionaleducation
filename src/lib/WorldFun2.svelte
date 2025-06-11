@@ -3,6 +3,7 @@
   import { onMount } from 'svelte';
 
   export let data = []; // Universidades
+  
   let container;
   let search = '';
   let selectedCountry = null;
@@ -183,7 +184,8 @@
               Tuition (média): $${d.Tuition_USD}<br/>
               Aluguel: $${d.Rent_USD}<br/>
               Seguro: $${d.Insurance_USD}<br/>
-              Câmbio (USD): ${d.Exchange_Rate}
+              Câmbio (USD): ${d.Exchange_Rate}<br/>
+              Ranking Mundial: ${d.world_rank}
             `)
             .style("left", `${x + 15}px`)
             .style("top", `${y + 15}px`)
@@ -369,7 +371,8 @@
             Tuition (média): $${d.Tuition_USD}<br/>
             Aluguel: $${d.Rent_USD}<br/>
             Seguro: $${d.Insurance_USD}<br/>
-            Câmbio (USD): ${d.Exchange_Rate}
+            Câmbio (USD): ${d.Exchange_Rate}<br/>
+            Ranking Mundial: ${d.world_rank}
           `)
           .style("left", `${x + 15}px`)
           .style("top", `${y + 15}px`)

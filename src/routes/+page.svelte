@@ -234,8 +234,8 @@
               Encontre as mais próximas de <strong>você!</strong>
             </h2>
             <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
-              Para analisar as faculdades mais próximas de você, <strong>clique no mapa</strong> abaixo
-              e analise a disponibilidade!
+              Para analisar as faculdades de alto padrão mais próximas de você, <strong>clique no mapa</strong> abaixo
+              e analise a sua proximidade!
             </p>
             <WorldMap on:select={(e) => {
               latitude = e.detail.lat.toFixed(6);
@@ -349,7 +349,7 @@
             <div class="stats-carousel" in:scale={{ duration: 500, delay: 400 }}>
               {#each [
                 { title: 'Quality of Education', desc: 'Qualidade do Ensino' },
-                { title: 'Alumni Employment', desc: 'Emprego de Egressos' },
+                { title: 'Alumni Employment', desc: 'Empregabilidade' },
                 { title: 'Quality of Faculty', desc: 'Qualidade do Corpo Docente' },
                 { title: 'Publications', desc: 'Publicações' },
                 { title: 'Citations', desc: 'Citações' }
@@ -430,8 +430,8 @@
             </p>
 
             <img
-              src="images/books_end.jpg"
-              alt="Livros Desenhos"
+              src="images/lupa.png"
+              alt="Lupa cartoon"
               class="illustration-below"
               in:fly={{ x: 100, duration: 800, delay: 500 }}
             />
@@ -550,7 +550,7 @@
                     title={`Slide ${i}: ${[
                         'Introdução', 'Base de Dados', 'Custo e Distância', '"Get the Money!"',
                         'Comparação Geral', 'Desigualdade...?', 'Ranking de Faculdades',  'Na verdade...',
-                        'Análise Geral', 'Faculdades pelo Mundo', 'Análise Interativa', 'Conclusão'
+                        'Análise Geral', 'Faculdades pelo Mundo', 'Por Continente', 'Conclusão'
                     ][i]}`}
                 >
                     <span class="sr-only">Slide {i + 1}</span>
@@ -903,7 +903,6 @@
     font-family: 'Fira Code', monospace;
     margin: 1rem 0;
     white-space: pre-wrap;
-    text-align: left;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }

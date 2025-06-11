@@ -132,7 +132,7 @@
               <strong>${d.programUniversity}</strong><br/>
               ${d.City || ''}, ${d.Country || ''}<br/>
               Custo Total: $${d.cost.toLocaleString()}<br/>
-              Rank: ${d.Rank}
+              Ranking Global: ${d.Rank}
             `);
 
           // Aumenta a bolha ao passar o mouse

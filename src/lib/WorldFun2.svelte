@@ -6,16 +6,14 @@
   
   let container;
   let search = '';
-  let selectedCountry = null;
-  let currentFlag = null;
-  let currentClipPath = null;
-  let currentPattern = null;
+  let selectedCountries = [];
   let circlesSize = 4;
   let circlesColor = '#ff5733';
   let circlesOpacity = 0.8;
   let pinWidth = 50;
   let pinHeight = 50;
   let tooltip;
+  let isAnimating = false;
 
   let svg, g, states, path, projection, zoom, circles;
   let world;
@@ -91,7 +89,8 @@
   async function loadWorld() {
     world = await d3.json('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson');
   }
-
+  
+  
   function zoomed(event) {
     const { transform } = event;
     g.attr("transform", transform);
@@ -154,12 +153,10 @@
       .attr("stroke-width", 0.5)
       .on("click", clicked)
       .on("mouseover", function() {
-        if (!selectedCountry) d3.select(this).attr("fill", "#aaa");
+        d3.select(this).attr("fill", "#aaa");
       })
       .on("mouseout", function() {
-        if (!selectedCountry || d3.select(this).attr("data-country") !== selectedCountry) {
-          d3.select(this).attr("fill", "#ccc");
-        }
+        d3.select(this).attr("fill", "#ccc");
       });
 
     states.append("title").text(d => d.properties.name);
@@ -211,53 +208,69 @@
     
   }
 
-  function reset() {
-    if (currentFlag) {
-      currentFlag.interrupt().remove();
-    }
-    if (currentClipPath) {
-      currentClipPath.remove();
-    }
-    if (currentPattern) {
-      currentPattern.remove();
-    }
-    
-    selectedCountry = null;
-    currentFlag = null;
-    currentClipPath = null;
-    currentPattern = null;
-    
-    states.transition().style("fill", "#ccc");
-    svg.transition().duration(750).call(
-      zoom.transform,
-      d3.zoomIdentity
-    );
+  function reset(countryName) {
+      if (countryName) {
+          let indexToRemove = selectedCountries.findIndex(element => element === countryName);
+          selectedCountries.splice(indexToRemove, 1);
 
-    if (circles) {
-      circles.transition()
-        .duration(500)
-        .attr("r", circlesSize)
-        .attr("fill", circlesColor)
-        .attr("opacity", circlesOpacity);
-    }
+          // Animação de saída dos pins antes de removê-los
+          g.selectAll(`image.pin.${countryName}`)
+            .transition()
+            .duration(400)
+            .ease(d3.easeExpIn)  // Efeito de subida (saindo para cima)
+            .attr("y", d => (projection([+d.lng, +d.lat])?.[1] || 0) - pinHeight - 100)  // Subir os pins (fora da tela)
+            .style("opacity", 0)  // Desaparecer
+            .on("end", function() {
+              d3.select(this).remove();  // Remove os elementos após a animação
+            });
 
-    g.selectAll("image.pin").remove();
+          g.selectAll(`.flag-${countryName.replace(/\s+/g, '-')}`).remove();
+          svg.select(`#flag-clip-${countriesISO.find(c => c.name === countryName)?.code}`).remove();
+          svg.select(`#flag-pattern-${countriesISO.find(c => c.name === countryName)?.code}`).remove();
+
+          states.transition().style("fill", "#ccc");
+
+          return;
+      }
+
+      selectedCountries = [];
+
+      // Animação de saída para todos os pins
+      g.selectAll("image.pin")
+        .transition()
+        .duration(800)
+        .ease(d3.easeExpIn)  // Efeito de subida (saindo para cima)
+        .attr("y", d => (projection([+d.lng, +d.lat])?.[1] || 0) - pinHeight - 100)  // Subir os pins (fora da tela)
+        .style("opacity", 0)  // Desaparecer
+        .on("end", function() {
+          d3.select(this).remove();  // Remove os elementos após a animação
+        });
+
+      g.selectAll(".flag").remove();  // Remove bandeiras restantes
+      svg.transition().duration(750).call(
+        zoom.transform,
+        d3.zoomIdentity
+      );
+
+      // Não precisamos de g.selectAll("image.pin").remove() aqui, pois já removemos na transição
   }
 
   function clicked(event, d) {
+    // if (isAnimating) return;
     event.stopPropagation();
     const countryName = d.properties.name;
     
     // Desseleciona se clicar no mesmo país
-    if (selectedCountry === countryName) {
-      reset();
+    if (selectedCountries.includes(countryName)) {
+      reset(countryName);
       return;
     }
     
-    // Remove elementos anteriores
-    reset();
+    isAnimating = true;
+    // svg.call(zoom.on("zoom", null));
+    // svg.style("pointer-events", "none");
 
-    selectedCountry = countryName;
+    selectedCountries.push(countryName);
 
     const match = countriesISO.find(c => c.name.toLowerCase() === countryName.toLowerCase());
     if (!match) return;
@@ -274,17 +287,19 @@
     const extra = 0.7; // Margem adicional
 
     // Cria máscara de recorte
-    currentClipPath = svg.select("defs")
+    const ClipPath = svg.select("defs")
       .append("clipPath")
       .attr("id", `flag-clip-${match.code}`)
       .append("path")
       .attr("d", path(d));
+    
 
     // Cria padrão da bandeira
     const size = Math.max(viewWidth, viewHeight) * (1 + extra);
 
-    currentPattern = svg.select("defs")
+    const Pattern = svg.select("defs")
       .append("pattern")
+      .attr("class", `pattern flag ${countryName}`)
       .attr("id", `flag-pattern-${match.code}`)
       .attr("patternUnits", "userSpaceOnUse")
       .attr("width", size)
@@ -297,9 +312,10 @@
       .attr("height", size)
       .attr("preserveAspectRatio", "xMidYMid slice");
 
+
     // Cria retângulo com a bandeira
-    currentFlag = g.append("rect")
-      .attr("class", "country-flag")
+    const Flag = g.append("rect")
+      .attr("class", `country-flag ${countryName}`)
       .attr("x", centerX - (viewWidth * (1 + extra)) / 2)
       .attr("y", centerY - (viewHeight * (1 + extra)) / 2)
       .attr("width", viewWidth * (1 + extra))
@@ -309,51 +325,20 @@
       .style("opacity", 0)
       .style("pointer-events", "none");
 
-    // Aplica zoom e animação
-    svg.transition().duration(1000).call(
-      zoom.transform,
-      d3.zoomIdentity
-        .translate(svg.attr("width") / 2, svg.attr("height") / 2)
-        .scale(Math.min(8, 0.9 / Math.max(
-          viewWidth / svg.attr("width"), 
-          viewHeight / svg.attr("height")
-        )))
-        .translate(-centerX, -centerY)
-    ).on("end", () => {
-      currentFlag.transition()
-        .duration(500)
-        .style("opacity", 1);
-
-        const fixedTransform = d3.zoomTransform(svg.node());
-
-        // Agora anima os pins com esse transform fixo
-        pins
-          .attr("y", d => (projection([+d.lng, +d.lat])?.[1] || 0) - pinHeight - 50) // posição inicial acima
-          .style("opacity", 0) // invisível no início
-          .transition()
-          .delay((_, i) => i * 50)  // cascata entre os pins
-          .duration(800)
-          .ease(d3.easeExpOut)  // efeito de queda (bounce)
-          .attr("y", d => (projection([+d.lng, +d.lat])?.[1] || 0) - (pinHeight / fixedTransform.k)) // posição final
-          .style("opacity", 1);
-    }); 
-
-    // Remover pins anteriores
-    g.selectAll("image.pin").remove();
-
     // Adiciona os novos pins com efeito de queda e tooltip
-    const pins = g.selectAll("image.pin")
+    const newPins = g.selectAll(`image.pin.${countryName}`)
       .data(
           Array.from(
             d3.group(
-              data.filter(d => d.Country === selectedCountry),
+              data.filter(d => d.Country === countryName),
               d => d.University
             ).values(),
             v => v[0]
           )
         )
+        
       .join("image")
-      .attr("class", "pin")
+      .attr("class", `pin ${countryName}`)
       .attr("href", "images/pinMap.png")
       .attr("width", pinWidth)
       .attr("height", pinHeight)
@@ -388,23 +373,45 @@
         const translate = [svg.attr("width") / 2 - scale * x, svg.attr("height") / 2 - scale * y];
 
         svg.transition()
-          .duration(750)
+          .duration(500)
           .call(
             zoom.transform,
             d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
           );
       });
 
-    // Aparecer depois da bandeira
-    currentFlag.transition()
-      .duration(500)
-      .style("opacity", 1);
-
-    if (circles) {
-      circles.transition()
+    // Aplica zoom e animação
+    svg.transition().duration(700).call(
+      zoom.transform,
+      d3.zoomIdentity
+        .translate(svg.attr("width") / 2, svg.attr("height") / 2)
+        .scale(Math.min(8, 0.9 / Math.max(
+          viewWidth / svg.attr("width"), 
+          viewHeight / svg.attr("height")
+        )))
+        .translate(-centerX, -centerY)
+    ).on("end", () => {
+      Flag.transition()
         .duration(500)
-        .attr("fill", d => d.Country === selectedCountry ? "#0077ff" : "#ff5733");
-    }
+        .style("opacity", 1);
+
+        const fixedTransform = d3.zoomTransform(svg.node());
+
+        // Agora anima os pins com esse transform fixo
+        newPins
+          .attr("y", d => (projection([+d.lng, +d.lat])?.[1] || 0) - pinHeight - 50) // posição inicial acima
+          .style("opacity", 0) // invisível no início
+          .transition()
+          .delay((_, i) => i * 50)  // cascata entre os pins
+          .duration(600)
+          .ease(d3.easeExpOut)  // efeito de queda (bounce)
+          .attr("y", d => (projection([+d.lng, +d.lat])?.[1] || 0) - (pinHeight / fixedTransform.k)) // posição final
+          .style("opacity", 1);
+    }); 
+
+    isAnimating = false;
+    // svg.call(zoom.on("zoom", zoomed));
+    // svg.style("pointer-events", "auto"); 
   }
 
   function zoomToCountry(name) {

@@ -3,7 +3,6 @@
 	import * as d3 from 'd3';
 
 	export let data = [];
-	// MODIFICADO: Recebe um objeto de cores, não mais uma string
 	export let colors = {}; 
 
 	let container;
@@ -21,20 +20,19 @@
 			.attr('width', width + margin.left + margin.right)
 			.attr('height', height + margin.top + margin.bottom)
 			.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
-		
+
+		const tooltip = d3.select("#tooltip");
+
 		const sumstat = d3.group(data, d => d.Country);
 		
-		// MODIFICADO: Agora guardamos o continente de cada país
 		const data_sorted = Array.from(sumstat, ([key, values]) => {
-			// Pega o continente do primeiro item (todos os itens de um país terão o mesmo continente)
 			const continent = values[0].Continent; 
 			const costs = values.map(v => v.total_cost).sort(d3.ascending);
 			const q1 = d3.quantile(costs, .25);
 			const median = d3.quantile(costs, .5);
 			const q3 = d3.quantile(costs, .75);
-			const interQuantileRange = q3 - q1;
-			const min = q1 - 1.5 * interQuantileRange;
-			const max = q3 + 1.5 * interQuantileRange;
+			const min = d3.min(costs); 
+			const max = d3.max(costs);
 			return { key, continent, value: {q1, median, q3, min, max} };
 		});
 		
@@ -52,33 +50,62 @@
 			
 		svg.append('g').call(d3.axisLeft(y).tickFormat(d => `$${d/1000}k`));
 
-		// MODIFICADO: A cor agora é determinada para cada item de dado (país)
-		// usando o mapa de cores e o continente do país.
+		const boxGroups = svg.selectAll("boxGroup")
+			.data(data_sorted)
+			.enter()
+			.append("g")
+			.attr("class", "box-group");
 
-		// Linhas verticais
-		svg.selectAll("vertLines").data(data_sorted).enter().append("line")
+		boxGroups.append("line")
 			.attr("x1", d => x(d.key)).attr("x2", d => x(d.key))
 			.attr("y1", d => y(d.value.min)).attr("y2", d => y(d.value.max))
-			.attr("stroke", d => colors[d.continent] || '#cccccc') // Usa o mapa de cores
-			.style("width", 4);
+			.attr("stroke", d => colors[d.continent] || '#cccccc');
 
-		// Retângulo do boxplot
-		svg.selectAll("boxes").data(data_sorted).enter().append("rect")
-			.attr("x", d => x(d.key) - 10).attr("y", d => y(d.value.q3))
+		boxGroups.append("rect")
+			.attr("x", d => x(d.key) - 10)
+			.attr("y", d => y(d.value.q3))
 			.attr("height", d => y(d.value.q1) - y(d.value.q3))
 			.attr("width", 20)
-			.attr("stroke", d => colors[d.continent] || '#cccccc') // Usa o mapa de cores
+			.attr("stroke", d => colors[d.continent] || '#cccccc')
 			.style("fill", d => {
 				const baseColor = d3.color(colors[d.continent] || '#cccccc');
 				return baseColor ? baseColor.copy({opacity: 0.5}) : '#cccccc80';
 			});
 
-		// Linha da mediana
-		svg.selectAll("medianLines").data(data_sorted).enter().append("line")
+		boxGroups.append("line")
 			.attr("x1", d => x(d.key) - 10).attr("x2", d => x(d.key) + 10)
 			.attr("y1", d => y(d.value.median)).attr("y2", d => y(d.value.median))
-			.attr("stroke", d => colors[d.continent] || '#cccccc') // Usa o mapa de cores
-			.style("width", 8);
+			.attr("stroke", d => colors[d.continent] || '#cccccc')
+			.style("stroke-width", 2);
+
+		boxGroups
+			.on("mouseover", function(event, d) {
+				tooltip
+					.style("opacity", 1)
+					// MODIFICADO: A posição 'left' e 'top' agora aponta diretamente para o cursor.
+					.style("left", event.pageX + "px")
+					.style("top", event.pageY + "px")
+					.html(`
+						<strong>${d.key}</strong><br>
+						Continente: ${d.continent}<br>
+						Máximo: $${d.value.max.toFixed(2)}<br>
+						Q3: $${d.value.q3.toFixed(2)}<br>
+						Mediana: $${d.value.median.toFixed(2)}<br>
+						Q1: $${d.value.q1.toFixed(2)}<br>
+						Mínimo: $${d.value.min.toFixed(2)}
+					`);
+				
+				d3.select(this).selectAll('line, rect')
+					.style('stroke-width', 2.5);
+			})
+			.on("mouseout", function(d) {
+				tooltip.style("opacity", 0);
+				
+				d3.select(this).selectAll('line, rect')
+					.style('stroke-width', null);
+				d3.select(this).select('line[y1*="median"]')
+					.style('stroke-width', 2);
+			});
 	}
 	
 	$: if(container && data && Object.keys(colors).length > 0) {
@@ -87,4 +114,27 @@
 
 </script>
 
+<style>
+	#tooltip {
+		position: absolute;
+		text-align: left;
+		padding: 8px;
+		font: 12px sans-serif;
+		background: lightsteelblue;
+		border: 0px;
+		border-radius: 8px;
+		pointer-events: none;
+		opacity: 0;
+		transition: opacity 0.2s;
+		
+		/* Mágica do posicionamento:
+		  - translate(-50%, -110%) move o tooltip:
+		    - 50% de sua própria largura para a esquerda (centralizando-o horizontalmente no cursor)
+		    - 110% de sua própria altura para cima (colocando-o acima do cursor com uma pequena margem)
+		*/
+		transform: translate(-350%, -150%);
+	}
+</style>
+
+<div id="tooltip"></div>
 <div bind:this={container} style="width: 900px; height: 350px; margin-left: 200px;"></div>

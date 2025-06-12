@@ -87,4 +87,4 @@
 
 </script>
 
-<div bind:this={container} style="width: 100%; height: 350px;"></div>
+<div bind:this={container} style="width: 900px; height: 350px; margin-left: 200px;"></div>

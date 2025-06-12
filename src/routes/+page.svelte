@@ -126,7 +126,7 @@
   
   // Funções de Navegação
   function next() {
-    if (currentSlide < 8) {
+    if (currentSlide < 12) {
       transitionDirection = 1;
       currentSlide += 1;
     }
@@ -831,23 +831,23 @@
     box-sizing: border-box;
   }
 
-.left {
-  flex: 0 0 40%;
-  max-width: 40%;
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
+  .left {
+    flex: 1 1 40%; /* Permite encolher/crescer mantendo a proporção de 40% */
+    min-width: 0; /* Evita que o conteúdo force o container a crescer */
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
 
-.right {
-  flex: 0 0 60%;
-  max-width: 60%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-}
+  .right {
+    flex: 1 1 60%; /* Permite encolher/crescer mantendo a proporção de 60% */
+    min-width: 0; /* Garante que o gráfico possa encolher se necessário */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
 
 @media (max-width: 1024px) {
   .left-right-container {

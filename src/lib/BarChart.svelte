@@ -9,7 +9,7 @@
   function draw() {
     if (!data.length) return;
 
-    const margin = { top: 20, right: 30, bottom: 50, left: 10 },
+    const margin = { top: 5, right: 30, bottom: 40, left: 10 },
       width = 600 - margin.left - margin.right;
 
     // Processa os dados
@@ -26,6 +26,7 @@
             University: d.University,
             City: d.City,
             Country: d.Country,
+            Duration_Years: d.Duration_Years,
             total_cost:
               Number(d.Rent_USD) * 12 +
               Number(d.Visa_Fee_USD) +
@@ -82,7 +83,7 @@
       .attr('class', 'tooltip')
       .style('position', 'absolute')
       .style('background', 'rgba(0, 0, 0, 0.7)')
-      .style('color', '#fff')
+      .style('color', '#f5f4f1')
       .style('padding', '6px 10px')
       .style('border-radius', '4px')
       .style('font-size', '12px')
@@ -108,7 +109,8 @@
             <strong>${d.program}</strong><br/>
             ${d.City || ''}, ${d.Country || ''}<br/>
             Custo Total: $${d.cost.toLocaleString()}<br/>
-            Custo de Vida Anual: $${d.total_cost.toLocaleString()}
+            Custo de Vida Anual: $${d.total_cost.toLocaleString()}<br>
+            Anos de Duração: ${d.Duration_Years.toLocaleString()}
           `);
 
         // Efeito de hover nas barras
@@ -145,7 +147,7 @@
       .attr('dy', '.35em')
       .style('text-anchor', 'end')
       .style('font-size', '12px')
-      .style('fill', '#fff')
+      .style('fill', '#f5f4f1')
       .style('font-weight', 'bold')
       .text(d => {
         const maxLength = 50;  // Limite de caracteres
@@ -167,7 +169,7 @@
   .tooltip {
     position: absolute;
     background: rgba(0, 0, 0, 0.7);
-    color: #fff;
+    color: #f5f4f1;
     padding: 8px;
     border-radius: 5px;
     font-size: 12px;
@@ -177,7 +179,7 @@
 
   .bar-label {
     font-size: 12px;
-    fill: white;
+    fill: #f5f4f1;
     font-weight: bold;
   }
 

@@ -69,7 +69,7 @@
       .attr('x', width / 2)
       .attr('y', 40)
       .attr('text-anchor', 'middle')
-      .text('Distância');
+      .text('Distância (km)');
 
     yAxisGroup.append('text')
       .attr('fill', '#000')
@@ -92,7 +92,7 @@
           .style('cursor', 'pointer')
           .transition()
           .duration(800)
-          .attr('r', 6),
+          .attr('r', 4),
         update => update
           .transition()
           .duration(500)

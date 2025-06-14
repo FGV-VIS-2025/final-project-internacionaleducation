@@ -53,6 +53,7 @@
         Continent: d.Continent,
         University: d.University,
         Program: d.Program,
+        Category: d.course_category,
         Level: d.Level,
         Rank: d.world_rank,
         lat: d.lat,
@@ -63,10 +64,22 @@
   }
 
   function getDistance(datum, point) {
-    const [latPoint, lngPoint] = point;
-    const lat = Number(datum.lat);
-    const lng = Number(datum.lng);
-    return Math.sqrt((latPoint - lat) ** 2 + (lngPoint - lng) ** 2);
+    const R = 6371; // raio médio da Terra em km
+    const toRad = deg => deg * Math.PI / 180;
+
+    const lat1 = toRad(Number(datum.lat));
+    const lon1 = toRad(Number(datum.lng));
+    const [lat2, lon2] = point.map(toRad);
+
+    const dLat = lat2 - lat1;
+    const dLon = lon2 - lon1;
+
+    const a = Math.sin(dLat / 2) ** 2
+            + Math.cos(lat1) * Math.cos(lat2)
+            * Math.sin(dLon / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c; // distância em km
   }
 
   // Declarações Reativas (lógica principal)
@@ -87,28 +100,34 @@
   let selectedCountry = "";
   let selectedProgram = "";
 
-  // Filtra os países com base no nível, programa e país selecionados
-  $: countries = Array.from(new Set(
-    educationData.filter(d =>
-      (!selectedProgram || d.Program === selectedProgram) &&
-      (!selectedLevel || d.Level === selectedLevel)  
-    ).map(d => d.Country)
-  )).sort();
+// 1) Lista de “países” passa a filtrar por categoria (selectedProgram = course_category)
+$: countries = Array.from(new Set(
+  educationData
+    .filter(d =>
+      (!selectedProgram || d.course_category === selectedProgram) &&
+      (!selectedLevel   || d.Level === selectedLevel)
+    )
+    .map(d => d.Country)
+)).sort();
 
-  // Filtra os programas com base no país, nível e programa selecionados
-  $: programs = Array.from(new Set(
-    educationData.filter(d =>
+
+// 2) A lista de “programs” já tava pegando course_category — deixa como está
+$: programs = Array.from(new Set(
+  educationData
+    .filter(d =>
       (!selectedCountry || d.Country === selectedCountry) &&
-      (!selectedLevel || d.Level === selectedLevel)  
-    ).map(d => d.Program)
-  )).sort();
+      (!selectedLevel   || d.Level === selectedLevel)
+    )
+    .map(d => d.course_category)
+)).sort();
 
-  // Filtra os dados com base no país, programa e nível selecionados
-  $: filteredEducation = educationData.filter(d =>
-    (!selectedCountry || d.Country === selectedCountry) &&
-    (!selectedProgram || d.Program === selectedProgram) &&
-    (!selectedLevel || d.Level === selectedLevel) 
-  );
+
+// 3) O filteredEducation também filtra por course_category
+$: filteredEducation = educationData.filter(d =>
+  (!selectedCountry  || d.Country === selectedCountry) &&
+  (!selectedProgram  || d.course_category === selectedProgram) &&
+  (!selectedLevel    || d.Level === selectedLevel)
+);
     
   $: filteredDataForBoxplot = selectedContinent
     ? dataWithCost.filter(d => d.Continent === selectedContinent)

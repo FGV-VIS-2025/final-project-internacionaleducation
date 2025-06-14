@@ -24,25 +24,41 @@
   });
 
   function draw() {
-    // Remove existing SVG and tooltip
+    // Clear previous render
     d3.select(container).select('svg').remove();
     d3.select(container).selectAll('.tooltip').remove();
     d3.select(container).selectAll('.legend').remove();
 
+    // Tooltip container
     const tooltip = d3
       .select(container)
       .append('div')
       .attr('class', 'tooltip')
       .style('opacity', 0);
 
-    const svg = d3
+    // SVG canvas
+    const svgCanvas = d3
       .select(container)
       .append('svg')
       .attr('width', width + margin.left + margin.right)
-      .attr('height', height + margin.top + margin.bottom)
+      .attr('height', height + margin.top + margin.bottom);
+
+    // Define clipping region
+    svgCanvas.append('defs')
+      .append('clipPath')
+      .attr('id', 'clip')
+      .append('rect')
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', width)
+      .attr('height', height);
+
+    // Main group translated
+    const svg = svgCanvas
       .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
+    // Scales
     const x = d3.scaleLinear()
       .domain([0, d3.max(data, d => d.distance) * 1.1])
       .range([0, width]);
@@ -51,12 +67,13 @@
       .domain([0, d3.max(data, d => d.total_cost) * 1.1])
       .range([height, 0]);
 
+    // Color scale setup
     const continents = Array.from(new Set(data.map(d => d.Continent)));
-    
     colorScale = d3.scaleOrdinal()
       .domain(continents)
       .range(d3.schemeCategory10);
 
+    // Axes groups
     const xAxisGroup = svg.append('g')
       .attr('transform', `translate(0,${height})`)
       .call(d3.axisBottom(x).ticks(6).tickFormat(d3.format('.2f')));
@@ -64,12 +81,13 @@
     const yAxisGroup = svg.append('g')
       .call(d3.axisLeft(y));
 
+    // Axis labels
     xAxisGroup.append('text')
       .attr('fill', '#000')
       .attr('x', width / 2)
       .attr('y', 40)
       .attr('text-anchor', 'middle')
-      .text('Distância');
+      .text('Distância até sua Cidade (km)');
 
     yAxisGroup.append('text')
       .attr('fill', '#000')
@@ -79,8 +97,14 @@
       .attr('text-anchor', 'middle')
       .text('Custo Total (USD)');
 
-    // Draw points (ENTER + UPDATE merged)
-    svg.selectAll('circle')
+    // Group for points with clipping
+    const pointsGroup = svgCanvas
+      .append('g')
+      .attr('transform', `translate(${margin.left},${margin.top})`)
+      .attr('clip-path', 'url(#clip)');
+
+    // Draw circles
+    pointsGroup.selectAll('circle')
       .data(data, d => d.City + d.total_cost)
       .join(
         enter => enter.append('circle')
@@ -92,7 +116,7 @@
           .style('cursor', 'pointer')
           .transition()
           .duration(800)
-          .attr('r', 6),
+          .attr('r', 4),
         update => update
           .transition()
           .duration(500)
@@ -101,18 +125,18 @@
           .attr('fill', d => colorScale(d.Continent))
       );
 
-    // Event listeners
-    svg.selectAll('circle')
+    // Tooltip interactions
+    pointsGroup.selectAll('circle')
       .on('mouseenter', (event, d) => {
         tooltip
           .html(
-            `<strong>${d.City}, ${d.Country}</strong><br/>
-             ${d.University}<br/>
-             Continente: ${d.Continent}<br/>
-             Custo Total: USD $${d.total_cost.toLocaleString()}`
+            `<strong>${d.City}, ${d.Country}</strong><br/>` +
+             `${d.University}<br/>` +
+             `${d.Program}<br/>` +
+             `Custo Total: USD $${d.total_cost.toLocaleString()}`
           )
           .style('opacity', 1);
-        
+
         d3.select(event.currentTarget)
           .attr('stroke', '#000')
           .attr('stroke-width', 2);
@@ -125,7 +149,6 @@
       })
       .on('mouseleave', event => {
         tooltip.style('opacity', 0);
-        
         d3.select(event.currentTarget)
           .attr('stroke', 'none');
       });
@@ -153,6 +176,26 @@
         .text(continent)
         .style('font-size', '0.85rem');
     });
+
+    // Zoom behavior
+    const zoom = d3.zoom()
+      .scaleExtent([0.5, 20])
+      .translateExtent([[0, 0], [width, height]])
+      .extent([[0, 0], [width, height]])
+      .on('zoom', (event) => {
+        const transform = event.transform;
+        const zx = transform.rescaleX(x);
+        const zy = transform.rescaleY(y);
+
+        xAxisGroup.call(d3.axisBottom(zx).ticks(6).tickFormat(d3.format('.2f')));
+        yAxisGroup.call(d3.axisLeft(zy));
+
+        pointsGroup.selectAll('circle')
+          .attr('cx', d => zx(d.distance))
+          .attr('cy', d => zy(d.total_cost));
+      });
+
+    svgCanvas.call(zoom);
   }
 </script>
 

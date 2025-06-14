@@ -2,7 +2,7 @@
   import * as d3 from 'd3';
   import { onMount } from 'svelte';
 
-  export let data = [];  // Dados das universidades
+  export let data = []; 
 
   let container;
   let tooltip;
@@ -18,32 +18,22 @@
     { min: 76, max: 100 }
   ];
 
-  // Função para organizar dados nas camadas de ranking e filtrar "Bachelor", mas com fallback
+  // Função para organizar dados nas camadas de ranking e filtrar
   function organizeData(data) {
-    // Primeiramente, tenta filtrar dados de "Bachelor"
     const bachelorData = data.filter(d => d.Level === "Bachelor");
-
-    // Para as faculdades que não têm "Bachelor", pega o primeiro dado disponível
     const fallbackData = data.filter(d => !bachelorData.some(item => item.University === d.University));
-
-    // Combina os dados, dando prioridade para "Bachelor" e adicionando os outros casos
     const uniqueUniversities = new Map();
-
-    // Adiciona os dados de "Bachelor"
     bachelorData.forEach(d => {
       if (!uniqueUniversities.has(d.University)) {
         uniqueUniversities.set(d.University, d);  // Adiciona "Bachelor"
       }
     });
-
-    // Para as faculdades que não têm "Bachelor", pega o primeiro dado
     fallbackData.forEach(d => {
       if (!uniqueUniversities.has(d.University)) {
         uniqueUniversities.set(d.University, d);  // Adiciona qualquer nível disponível
       }
     });
 
-    // Organiza os dados nas camadas de ranking
     return rankLayers.map(layer => {
       return Array.from(uniqueUniversities.values())
         .filter(d => d.Rank >= layer.min && d.Rank <= layer.max)
@@ -65,7 +55,7 @@
           height = 300 - margin.top - margin.bottom;
 
     const svg = d3.select(container)
-      .html('')  // Limpa o container antes de desenhar
+      .html('')  
       .append('svg')
       .attr('width', width + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
@@ -82,7 +72,7 @@
       .domain([1, 100])
       .range([0, width]);
 
-    // Escala para o eixo Y (posição dentro da camada, para evitar sobreposição)
+    // Escala para o eixo Y 
     const yScale = d3.scaleLinear()
       .domain([0, 10])  // Máximo de 10 camadas por "faixa" de ranking, ajustável
       .range([0, height]);
@@ -173,7 +163,7 @@
     legend.append('rect')
       .attr('x', -10)
       .attr('y', -10)
-      .attr('width', 120)
+      .attr('width', 180)
       .attr('height', 60)
       .attr('fill', '#fff')
       .attr('stroke', '#000')
@@ -189,7 +179,7 @@
       .attr('x', 25)
       .attr('y', 15)
       .style('font-size', '12px')
-      .text('USA');
+      .text('Estadunidense');
 
     legend.append('circle')
       .attr('cx', 10)
@@ -201,7 +191,38 @@
       .attr('x', 25)
       .attr('y', 35)
       .style('font-size', '12px')
-      .text('Not USA');
+      .text('Não-Estadunidense');
+
+    svg.append('defs')
+    .append('marker')
+      .attr('id', 'arrow')
+      .attr('viewBox', '0 -5 10 10')
+      .attr('refX', 5)         // posição X do ponto de aplicação
+      .attr('refY', 0)         // posição Y do ponto de aplicação
+      .attr('markerWidth', 6)
+      .attr('markerHeight', 6)
+      .attr('orient', 'auto')
+    .append('path')
+      .attr('d', 'M0,-5L10,0L0,5')  // formato do triângulo
+      .attr('fill', '#000');
+
+  // 2) Desenhe a linha-seta em x = 10, do bottom (y = height) até top (y = 0)
+  svg.append('line')
+    .attr('x1', width)
+    .attr('y1', 0)
+    .attr('x2', 10)
+    .attr('y2', 0)
+    .attr('stroke', '#000')
+    .attr('stroke-width', 2)
+    .attr('marker-end', 'url(#arrow)');
+
+  // 3) Adicione o texto “melhor posição” abaixo da seta
+  svg.append('text')
+    .attr('x', width/2)
+    .attr('y', 16)   // um pouco abaixo do fim da linha
+    .attr('text-anchor', 'middle')
+    .style('font-size', '12px')
+    .text('Melhor Posição');
   }
 
   onMount(() => {

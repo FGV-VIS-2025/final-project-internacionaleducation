@@ -82,7 +82,6 @@
     return R * c; // distância em km
   }
 
-  // Declarações Reativas (lógica principal)
   $: if (educationData.length) {
     const baseCostData = calculateCosts(educationData);
     if (selectedPoint) {
@@ -100,34 +99,29 @@
   let selectedCountry = "";
   let selectedProgram = "";
 
-// 1) Lista de “países” passa a filtrar por categoria (selectedProgram = course_category)
-$: countries = Array.from(new Set(
-  educationData
-    .filter(d =>
-      (!selectedProgram || d.course_category === selectedProgram) &&
-      (!selectedLevel   || d.Level === selectedLevel)
-    )
-    .map(d => d.Country)
-)).sort();
+  $: countries = Array.from(new Set(
+    educationData
+      .filter(d =>
+        (!selectedProgram || d.course_category === selectedProgram) &&
+        (!selectedLevel   || d.Level === selectedLevel)
+      )
+      .map(d => d.Country)
+  )).sort();
 
+  $: programs = Array.from(new Set(
+    educationData
+      .filter(d =>
+        (!selectedCountry || d.Country === selectedCountry) &&
+        (!selectedLevel   || d.Level === selectedLevel)
+      )
+      .map(d => d.course_category)
+  )).sort();
 
-// 2) A lista de “programs” já tava pegando course_category — deixa como está
-$: programs = Array.from(new Set(
-  educationData
-    .filter(d =>
-      (!selectedCountry || d.Country === selectedCountry) &&
-      (!selectedLevel   || d.Level === selectedLevel)
-    )
-    .map(d => d.course_category)
-)).sort();
-
-
-// 3) O filteredEducation também filtra por course_category
-$: filteredEducation = educationData.filter(d =>
-  (!selectedCountry  || d.Country === selectedCountry) &&
-  (!selectedProgram  || d.course_category === selectedProgram) &&
-  (!selectedLevel    || d.Level === selectedLevel)
-);
+  $: filteredEducation = educationData.filter(d =>
+    (!selectedCountry  || d.Country === selectedCountry) &&
+    (!selectedProgram  || d.course_category === selectedProgram) &&
+    (!selectedLevel    || d.Level === selectedLevel)
+  );
     
   $: filteredDataForBoxplot = selectedContinent
     ? dataWithCost.filter(d => d.Continent === selectedContinent)

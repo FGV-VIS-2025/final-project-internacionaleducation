@@ -139,7 +139,7 @@
   
   // Funções de Navegação
   function next() {
-    if (currentSlide < 12) {
+    if (currentSlide < 13) {
       transitionDirection = 1;
       currentSlide += 1;
     }
@@ -527,6 +527,29 @@
             />
           </div>
         </div>
+
+      {:else if currentSlide === 12}
+        <div class="references">
+          <h2 in:fly={{ y: -40, duration: 600 }} class="title">Referências</h2>
+          <ol>
+            <li>[1] Shamim, A. (2024). Cost of International Education [Data set]. Kaggle.</li>
+            <li>[2] O’Neill, M. (2020). World University Rankings [Data set]. Kaggle.</li>
+          </ol>
+        </div>
+          <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
+            Abaixo estão disponíveis os <strong>dados utilizados</strong> para o construção dos gráficos desse site em formato json. Qualquer dúvida ou sugestão entrar em contato com:
+          </p>
+          <div class="emails">
+            <h3>Contatos</h3>
+            <ul>
+              <li><a href="mailto:jogabriel433@gmail.com">jogabriel433@gmail.com</a></li>
+              <li><a href="mailto:gu.bianchi.s@gmail.com">gu.bianchi.s@gmail.com</a></li>
+              <li><a href="mailto:vinicius.nascimento05@hotmail.com">vinicius.nascimento05@hotmail.com</a></li>
+            </ul>
+          </div>
+          <a class="download-btn" href="./education.json" download>
+            📥 Baixar Dados
+          </a>
       {/if}
     </div>
   {/key}
@@ -545,7 +568,7 @@
 
     <footer style="background: transparent;">
         <div id="select" role="tablist" aria-label="Navegação entre slides">
-            {#each Array(12) as _, i}
+            {#each Array(13) as _, i}
                 <button
                     role="tab"
                     aria-selected={currentSlide === i}
@@ -555,7 +578,7 @@
                     class="dot"
                     on:click={() => goToSlide(i)}
                     on:keydown={(e) => {
-                        const totalSlides = 11;
+                        const totalSlides = 12;
                         if (e.key === 'ArrowRight') goToSlide((i + 1) % totalSlides);
                         if (e.key === 'ArrowLeft') goToSlide((i - 1 + totalSlides) % totalSlides);
                     }}
@@ -563,7 +586,7 @@
                     title={`Slide ${i}: ${[
                         'Introdução', 'Base de Dados', 'Custo e Distância', '"Get the Money!"',
                         'Comparação Geral', 'Desigualdade...?', 'Ranking de Faculdades',  'Na verdade...',
-                        'Análise Geral', 'Faculdades pelo Mundo', 'Por Continente', 'Conclusão'
+                        'Análise Geral', 'Faculdades pelo Mundo', 'Por Continente', 'Conclusão', "Referências"
                     ][i]}`}
                 >
                     <span class="sr-only">Slide {i + 1}</span>
@@ -573,7 +596,7 @@
     </footer>
 
     <div class="nav-button-wrapper">
-        {#if currentSlide < 11}
+        {#if currentSlide < 12}
             <button class="button" size="long" on:click={next} aria-label="Avançar para o próximo slide" transition:fade>
                 <div id="background"></div>
                 <div id="text">Próximo →</div>
@@ -1047,4 +1070,67 @@ footer {
   cursor: pointer;
   transition: color 0.3s ease;
 }
+
+.references {
+  text-align: center;
+}
+.references h2 {
+  font-size: 3rem;
+  margin-bottom: 0.8rem;
+  color: #333;
+}
+.references ol {
+  list-style-position: inside;
+  display: inline-block;
+  text-align: left;
+  margin-bottom: 1.2rem;
+}
+.references ol li {
+  margin: 0.2rem 0;
+  font-size: 1.2rem;
+  color: #555;
+}
+
+/* estilo para a seção de e-mails */
+.emails {
+  margin-bottom: 0.4rem;
+}
+.emails h3 {
+  font-size: 1.6rem;
+  margin-bottom: 0.4rem;
+  color: #333;
+}
+.emails ul {
+  list-style: none;
+  padding: 0;
+  display: inline-flex;
+  gap: 1.2rem;
+}
+.emails ul li a {
+  color: #007acc;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.emails ul li a:hover {
+  color: #005fa3;
+}
+
+/* botão estiloso */
+.download-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #6b73ff 0%, #000dff 100%);
+  color: #fff;
+  padding: 0.6rem 1.4rem;
+  border-radius: 30px;
+  text-decoration: none;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 13, 255, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.download-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 13, 255, 0.4);
+}
+
 </style>

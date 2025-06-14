@@ -87,7 +87,7 @@
       .attr('x', width / 2)
       .attr('y', 40)
       .attr('text-anchor', 'middle')
-      .text('Distância (km)');
+      .text('Distância até sua Cidade (km)');
 
     yAxisGroup.append('text')
       .attr('fill', '#000')
@@ -132,7 +132,7 @@
           .html(
             `<strong>${d.City}, ${d.Country}</strong><br/>` +
              `${d.University}<br/>` +
-             `Continente: ${d.Continent}<br/>` +
+             `${d.Program}<br/>` +
              `Custo Total: USD $${d.total_cost.toLocaleString()}`
           )
           .style('opacity', 1);

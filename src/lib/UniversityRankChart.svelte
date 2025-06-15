@@ -185,7 +185,6 @@
 <style>
   .chart-container {
     width: 100%;
-    height: 500px;
     overflow-y: auto;
     border-radius: 15px;
     box-shadow: 0 8px 16px rgba(0,0,0,0.1);

@@ -18,6 +18,41 @@
   let svg, g, states, path, projection, zoom, circles;
   let world;
 
+  // Agrupa os dados por universidade
+  const transformed = data.reduce((acc, item) => {
+    const key = item.Country + '|' + item.University;
+    
+    if (!acc[key]) {
+      acc[key] = {
+        Country: item.Country,
+        City: item.City,
+        University: item.University,
+        Living_Cost_Index: item.Living_Cost_Index,
+        Rent_USD: item.Rent_USD,
+        Visa_Fee_USD: item.Visa_Fee_USD,
+        Insurance_USD: item.Insurance_USD,
+        Exchange_Rate: item.Exchange_Rate,
+        lat: item.lat,
+        lng: item.lng,
+        Continent: item.Continent,
+        world_rank: item.world_rank,
+        Courses_Info: []
+      };
+    }
+
+    acc[key].Courses_Info.push({
+      Program: item.Program,
+      course_category: item.course_category,
+      Level: item.Level,
+      Duration_Years: item.Duration_Years,
+      Tuition_USD: item.Tuition_USD
+    });
+
+    return acc;
+  }, {});
+
+  const groupedUniversities = Object.values(transformed);
+
   const countriesISO = [
     { name: "Algeria", code: "dz", patternLoaded: false },
     { name: "Argentina", code: "ar", patternLoaded: false },
@@ -88,6 +123,14 @@
 
   async function loadWorld() {
     world = await d3.json('https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson');
+  }
+
+  function getPinIcon(rank) {
+    console.log(rank);
+    if (rank <= 10) return "images/pinMapDiamante.png";
+    if (rank <= 100) return "images/pinMapOuro.png";
+    if (rank <= 400) return "images/pinMapPrata.png";
+    return "images/pinMapBronze.png";
   }
   
   function zoomed(event) {
@@ -162,10 +205,10 @@
 
     states.append("title").text(d => d.properties.name);
 
-    if (data.length > 0) {
+    if (groupedUniversities.length > 0) {
       circles = g.append("g")
         .selectAll("circle")
-        .data(data)
+        .data(groupedUniversities)
         .join("circle")
         .attr("cx", d => projection([+d.lng, +d.lat])?.[0] || 0)
         .attr("cy", d => projection([+d.lng, +d.lat])?.[1] || 0)
@@ -414,7 +457,7 @@
       .data(
         Array.from(
           d3.group(
-            data.filter(d => d.Country === countryName),
+            groupedUniversities.filter(d => d.Country === countryName),
             d => d.University
           ).values(),
           v => v[0]
@@ -422,7 +465,7 @@
       )
       .join("image")
       .attr("class", `pin ${countryClass}`)
-      .attr("href", "images/pinMap.png")
+      .attr("href", d => getPinIcon(d.world_rank))
       .attr("width", pinWidth)
       .attr("height", pinHeight)
       .attr("x", d => (projection([+d.lng, +d.lat])?.[0] || 0) - pinWidth / 2)
@@ -438,7 +481,6 @@
           .html(`
             <strong>${d.University}</strong><br/>
             ${d.City}, ${d.Country}<br/>
-            Tuition (média): $${d.Tuition_USD}<br/>
             Aluguel: $${d.Rent_USD}<br/>
             Seguro: $${d.Insurance_USD}<br/>
             Câmbio (USD): ${d.Exchange_Rate}<br/>
@@ -557,11 +599,6 @@
   }
   button:hover {
     background: #e0e0e0;
-  }
-  .flag-border:hover {
-    stroke: red;
-    stroke-width: 1.1;
-    opacity: 1 !important;
   }
 </style>
 

@@ -90,7 +90,6 @@
           .attr('ry', 8)
           .attr('fill', d => {
             const rank = d.world_rank;
-            if (rank === undefined || rank === "Unknown") return '#a0a0a0';
             if (rank <= 10) return '#00c2ff';   // Diamante
             if (rank <= 100) return '#ffd700';  // Ouro
             if (rank <= 400) return '#c0c0c0';  // Prata

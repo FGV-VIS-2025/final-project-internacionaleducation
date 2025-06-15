@@ -1,12 +1,14 @@
 <script>
   import * as d3 from 'd3';
   import { onMount } from 'svelte';
+  import CourseList from './CourseList.svelte';
+  import UniversityRankChart from './UniversityRankChart.svelte'
 
   export let data = []; // Universidades
+  export let selectedCountries = [];
   
   let container;
   let search = '';
-  let selectedCountries = [];
   let circlesSize = 4;
   let circlesColor = '#ff5733';
   let circlesOpacity = 0.8;
@@ -14,6 +16,7 @@
   let pinHeight = 50;
   let tooltip;
   let isAnimating = false;
+  let selectedUniversity = null;
 
   let svg, g, states, path, projection, zoom, circles;
   let world;
@@ -126,7 +129,6 @@
   }
 
   function getPinIcon(rank) {
-    console.log(rank);
     if (rank <= 10) return "images/pinMapDiamante.png";
     if (rank <= 100) return "images/pinMapOuro.png";
     if (rank <= 400) return "images/pinMapPrata.png";
@@ -222,11 +224,9 @@
             .html(`
               <strong>${d.University}</strong><br/>
               ${d.City}, ${d.Country}<br/>
-              Tuition (média): $${d.Tuition_USD}<br/>
               Aluguel: $${d.Rent_USD}<br/>
               Seguro: $${d.Insurance_USD}<br/>
               Câmbio (USD): ${d.Exchange_Rate}<br/>
-              Ranking Mundial: ${d.world_rank}
             `)
             .style("left", `${x + 15}px`)
             .style("top", `${y + 15}px`)
@@ -254,8 +254,7 @@
 
   function reset(countryName) {
     if (countryName) {
-      let indexToRemove = selectedCountries.findIndex(element => element === countryName);
-      selectedCountries.splice(indexToRemove, 1);
+      selectedCountries = selectedCountries.filter(c => c !== countryName);
 
       const className = countryName.replace(/\s+/g, '-');
 
@@ -330,7 +329,7 @@
     }
 
     isAnimating = true;
-    selectedCountries.push(countryName);
+    selectedCountries = [...selectedCountries, countryName];
 
     const match = countriesISO.find(c => c.name.toLowerCase() === countryName.toLowerCase());
     if (!match) return;
@@ -454,15 +453,7 @@
 
     // Adiciona os novos pins com efeito de queda e tooltip
     const newPins = g.selectAll(`image.pin.${countryClass}`)
-      .data(
-        Array.from(
-          d3.group(
-            groupedUniversities.filter(d => d.Country === countryName),
-            d => d.University
-          ).values(),
-          v => v[0]
-        )
-      )
+      .data(groupedUniversities.filter(d => d.Country === countryName))
       .join("image")
       .attr("class", `pin ${countryClass}`)
       .attr("href", d => getPinIcon(d.world_rank))
@@ -474,6 +465,31 @@
       .style("cursor", "pointer")
       .style("pointer-events", "auto")
       .on("mousemove", function(event, d) {
+        const pin = d3.select(this);
+        const centerX = this.x.baseVal.value + pinWidth / 2;
+        const centerY = this.y.baseVal.value + pinHeight; // base do pin
+        let isHovering = true;
+
+        function swing() {
+          if (!isHovering) return; // para animação se mouse saiu
+
+          pin.transition()
+            .duration(150)
+            .ease(d3.easeSinInOut)
+            .attr("transform", `rotate(-6,${centerX},${centerY})`)
+            .transition()
+            .duration(150)
+            .ease(d3.easeSinInOut)
+            .attr("transform", `rotate(6,${centerX},${centerY})`)
+            .transition()
+            .duration(150)
+            .ease(d3.easeSinInOut)
+            .attr("transform", `rotate(0,${centerX},${centerY})`)
+            .on("end", swing);
+        }
+
+        // swing(); // inicia
+        pin.attr("data-swinging", "true"); // flag se quiser usar depois
         d3.select(this).raise(); 
 
         const [x, y] = d3.pointer(event, container);
@@ -493,6 +509,7 @@
       .on("mouseout", () => tooltip.style("opacity", 0))
       .on("click", (event, d) => {
         event.stopPropagation();
+        selectedUniversity = d;
         const [x, y] = projection([+d.lng, +d.lat]);
         const scale = 4;
         const translate = [svg.attr("width") / 2 - scale * x, svg.attr("height") / 2 - scale * y];
@@ -567,9 +584,57 @@
       if (world) draw();
     });
   });
+
+  $: {
+    console.log("Selected countries updated:", selectedCountries);
+    // Forçar atualização se necessário
+  }
+
 </script>
 
 <style>
+  .map-wrapper {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    height: 100%;
+  }
+
+  .sidebar {
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .top-box {
+    height: 100px;
+    overflow-y: auto;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #f9f9f9;
+  }
+
+  .bottom-box {
+    flex: 1;
+    min-height: 300px;
+    border: 1px dashed #ccc;
+    border-radius: 6px;
+    padding: 8px;
+    background: #fdfdfd;
+  }
+
+  .map-container {
+    width: 60%;
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
   input {
     margin-bottom: 10px;
     padding: 8px 12px;
@@ -579,15 +644,7 @@
     border-radius: 4px;
     font-size: 16px;
   }
-  .map-container {
-    position: relative;
-    width: 100%;
-    margin: 0 auto;
-    overflow: hidden;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
+
   button {
     margin-left: 10px;
     padding: 8px 12px;
@@ -600,26 +657,42 @@
   button:hover {
     background: #e0e0e0;
   }
+
 </style>
 
-<div class="map-container">
-  <input
-    list="countries"
-    bind:value={search}
-    placeholder="Digite ou selecione um país"
-    on:keydown={(e) => {
-      if (e.key === 'Enter') {
-        zoomToCountry(search);
-      }
-    }}
-  />
-  <datalist id="countries">
-    {#each countriesISO as c}
-      <option value={c.name} />
-    {/each}
-  </datalist>
-  <button on:click={() => reset()}>
-    Resetar Mapa
-  </button>
-  <div bind:this={container} style="width: 100%; height: auto;"></div>
+<div class="map-wrapper">
+  <div class="sidebar">
+    <div class="top-box">
+      <CourseList university={selectedUniversity} />
+    </div>
+    <div class="bottom-box">
+      <UniversityRankChart
+        data={groupedUniversities}
+        selectedCountries={selectedCountries}
+        on:selectUniversity={(e) => selectedUniversity = e.detail}
+        on:zoomToCountry={(e) => zoomToCountry(e.detail)}
+      />
+    </div>
+  </div>
+  <div class="map-container">
+    <input
+      list="countries"
+      bind:value={search}
+      placeholder="Digite ou selecione um país"
+      on:keydown={(e) => {
+        if (e.key === 'Enter') {
+          zoomToCountry(search);
+        }
+      }}
+    />
+    <datalist id="countries">
+      {#each countriesISO as c}
+        <option value={c.name} />
+      {/each}
+    </datalist>
+    <button on:click={() => reset()}>
+      Resetar Mapa
+    </button>
+    <div bind:this={container} style="width: 100%; height: auto;"></div>
+  </div>
 </div>

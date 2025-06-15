@@ -34,6 +34,8 @@
   const numCidades = 556;
   const numFaculdades = 622;
 
+  let selectedCountries = [];
+
   // Funções de manipulação de dados
   async function fetchEducationData(url) {
     const res = await fetch(url);
@@ -453,22 +455,20 @@
 
 
       {:else if currentSlide === 9}
-        <div class="left-right-container">
-          <div class="left">
-            <h2 in:fly={{ y: -40, duration: 600 }} class="title">
+        <div class="title">
+            <h2 in:fly={{ y: -40, duration: 600 }} style="margin-bottom: 10px;" class="title">
               <strong>Mapa Mundial</strong> de Universidades
             </h2>
-            <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
+            <p class="slide-text" style="margin-bottom: 10px;" in:fly={{ y: 20, delay: 200, duration: 600 }}>
               Veja a distribuição geográfica dos custos educacionais em um mapa interativo.
             </p>
-          </div>
-          <div class="right">
-            {#if educationData.length}
-              <WorldFun2 data={educationData} />
-            {:else}
-              <p>Carregando dados...</p>
-            {/if}
-          </div>
+            <div class = "mapaInterativo">
+              {#if educationData.length}
+                <WorldFun2 data={educationData} bind:selectedCountries/>
+              {:else}
+                <p>Carregando dados...</p>
+              {/if}
+            </div>
         </div>
 
       {:else if currentSlide === 10}

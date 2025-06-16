@@ -5,11 +5,12 @@
 
 Este projeto foi desenvolvido como trabalho final da disciplina de Visualização de Dados. Nosso objetivo foi apresentar, de forma interativa e visualmente atrativa, os custos envolvidos em estudar no exterior.
 
-O projeto combina:
-- Visualizações interativas e dinâmicas  
-- Animações integradas ao conteúdo  
-- Um site navegável que reúne as informações de forma clara  
-- Materiais complementares: vídeo explicativo e cartaz
+## 🛠️ Comentários sobre o Desenvolvimento
+
+Durante o desenvolvimento do projeto, buscamos equilibrar nossas ideias iniciais de visualização com sugestões e críticas construtivas feitas por colegas.  
+Integramos dados, visualizações e animações num website interativo, com foco em navegação simples e dinâmica.  
+
+Além do site, também criamos materiais complementares — como um vídeo explicativo e um cartaz — que ajudaram a guiar o design das interações e o foco das informações apresentadas.  
 
 🔗 Acesse o site aqui:  
 👉 [https://fgv-vis-2025.github.io/final-project-internacionaleducation/](https://fgv-vis-2025.github.io/final-project-internacionaleducation/)

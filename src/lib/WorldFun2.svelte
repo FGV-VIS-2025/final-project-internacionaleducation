@@ -461,35 +461,12 @@
       .attr("height", pinHeight)
       .attr("x", d => (projection([+d.lng, +d.lat])?.[0] || 0) - pinWidth / 2)
       .attr("y", d => (projection([+d.lng, +d.lat])?.[1] || 0) - pinHeight - 50)
+      .attr("data-uni-id", d => d.University.replace(/\s+/g, '-'))
       .style("opacity", 0)
       .style("cursor", "pointer")
       .style("pointer-events", "auto")
       .on("mousemove", function(event, d) {
-        const pin = d3.select(this);
-        const centerX = this.x.baseVal.value + pinWidth / 2;
-        const centerY = this.y.baseVal.value + pinHeight; // base do pin
-        let isHovering = true;
 
-        function swing() {
-          if (!isHovering) return; // para animação se mouse saiu
-
-          pin.transition()
-            .duration(150)
-            .ease(d3.easeSinInOut)
-            .attr("transform", `rotate(-6,${centerX},${centerY})`)
-            .transition()
-            .duration(150)
-            .ease(d3.easeSinInOut)
-            .attr("transform", `rotate(6,${centerX},${centerY})`)
-            .transition()
-            .duration(150)
-            .ease(d3.easeSinInOut)
-            .attr("transform", `rotate(0,${centerX},${centerY})`)
-            .on("end", swing);
-        }
-
-        // swing(); // inicia
-        pin.attr("data-swinging", "true"); // flag se quiser usar depois
         d3.select(this).raise(); 
 
         const [x, y] = d3.pointer(event, container);

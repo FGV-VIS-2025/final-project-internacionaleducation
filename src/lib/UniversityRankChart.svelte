@@ -24,11 +24,13 @@
 
     const withoutRank = filtered.filter(d => d.world_rank === "Unknown");
 
-    return [...withRank, ...withoutRank].map((d, i) => ({
+    return [...withRank, ...withoutRank]
+    .map((d, i) => ({
       ...d,
       scopeRank: i + 1,
       isRanked: d.world_rank !== "Unknown"
-    }));
+    }))
+    .slice(0, 15); 
   }
 
   function drawChart() {
@@ -105,20 +107,41 @@
               dispatch('selectUniversity', d);
             }
           })
-          .on('mouseover', function () {
-            d3.select(this)
-              .transition()
-              .duration(200)
-              .attr('fill-opacity', 0.9)
-              .attr('stroke-width', 2);
+            .on('mouseover', function(event, d) {
+            const bar = d3.select(this);
+    
+            // Guarda a cor original (se precisar restaurar depois)
+            bar.attr('data-original-fill', bar.attr('fill'));
+            
+            bar.transition()
+                .duration(200)
+                .attr('fill', d3.color(bar.attr('fill')).brighter(0.6)) // Clareia a cor
+                .attr('fill-opacity', 0.9)
+                .attr('stroke-width', 3);
+
+            const pin = d3.select(`image.pin[data-uni-id='${d.University.replace(/\s+/g, '-')}']`);
+            if (!pin.empty()) {
+              const originalY = parseFloat(pin.attr('y'));
+
+              pin.raise();
+
+              pin.transition()
+                .duration(100)
+                .attr('y', originalY - 10)
+                .transition()
+                .duration(100)
+                .attr('y', originalY);
+            }
           })
+
           .on('mouseout', function () {
-            d3.select(this)
-              .transition()
-              .duration(200)
-              .attr('fill-opacity', 1)
-              .attr('stroke-width', 1.5);
-          })
+            const bar = d3.select(this);
+            bar.transition()
+                .duration(200)
+                .attr('fill', bar.attr('data-original-fill')) // Volta para a cor original
+                .attr('fill-opacity', 1)
+                .attr('stroke-width', 1);
+                  })
           .transition()
           .duration(800)
           .attr('width', d => barWidths(d)),
@@ -174,11 +197,10 @@
       .attr('font-weight', 'bold')
       .attr('fill', '#4a90e2')
       .text(selectedCountries.length
-        ? `Ranking nas Universidades Selecionadas`
-        : `Ranking Mundial de Universidades`);
+        ? `top 15 universidades da seleção`
+        : `Top universidades Globais`);
   }
 
-  onMount(drawChart);
   afterUpdate(drawChart);
 </script>
 

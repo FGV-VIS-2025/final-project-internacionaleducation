@@ -459,9 +459,10 @@
             <h2 in:fly={{ y: -40, duration: 600 }} style="margin-bottom: 10px;" class="title">
               <strong>Mapa Mundial</strong> de Universidades
             </h2>
-            <p class="slide-text" style="margin-bottom: 10px;" in:fly={{ y: 20, delay: 200, duration: 600 }}>
+            <p class="slide-text" in:fly={{ y: 20, delay: 200, duration: 600 }}>
               Veja a distribuição geográfica dos custos educacionais em um mapa interativo.
             </p>
+            <p style="margin-bottom: 10px;" >Legenda: Diamante = top 10, Ouro = top 50, Prata = top 300 e Bornze = top 1000 ou Sem rank </p>
             <div class = "mapaInterativo">
               {#if educationData.length}
                 <WorldFun2 data={educationData} bind:selectedCountries/>

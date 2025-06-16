@@ -14,6 +14,11 @@ O projeto combina:
 🔗 Acesse o site aqui:  
 👉 [https://fgv-vis-2025.github.io/final-project-internacionaleducation/](https://fgv-vis-2025.github.io/final-project-internacionaleducation/)
 
+## 🧑‍💻 Integrantes
+- **Gustavo Bianchi da Silva**  
+- **João Gabriel Machado**  
+- **Vinicius Pereira Nascimento**
+
 ## 🔧 Divisão de Tarefas
 
 **🎨 Design do Website**  

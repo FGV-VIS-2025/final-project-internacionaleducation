@@ -1,38 +1,45 @@
-# create-svelte
+# 💼 Projeto Final – Visualização de Dados  
+**Tema: Custos para Estudos no Exterior**
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
+## 🌍 Sobre o Projeto
 
-## Creating a project
+Este projeto foi desenvolvido como trabalho final da disciplina de Visualização de Dados. Nosso objetivo foi apresentar, de forma interativa e visualmente atrativa, os custos envolvidos em estudar no exterior.
 
-If you're seeing this, you've probably already done this step. Congrats!
+O projeto combina:
+- Visualizações interativas e dinâmicas  
+- Animações integradas ao conteúdo  
+- Um site navegável que reúne as informações de forma clara  
+- Materiais complementares: vídeo explicativo e cartaz
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+🔗 Acesse o site aqui:  
+👉 [https://fgv-vis-2025.github.io/final-project-internacionaleducation/](https://fgv-vis-2025.github.io/final-project-internacionaleducation/)
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+## 🔧 Divisão de Tarefas
 
-## Developing
+**🎨 Design do Website**  
+- Vinicius  
+- João Gabriel  
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+**📊 Construção das Visualizações & Implementação**  
+- Vinicius  
+- João  
+- Gustavo  
 
-```bash
-npm run dev
+**🖼️ Criação do Cartaz**  
+- Gustavo  
+- João  
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+**✏️ Design do Cartaz**  
+- Gustavo  
 
-## Building
+**📝 Escrita do Relatório**  
+- Vinicius  
 
-To create a production version of your app:
+**🎬 Edição de Vídeo e Trailer**  
+- Vinicius  
 
-```bash
-npm run build
-```
+**📄 Página de Apresentação**  
+- João  
 
-You can preview the production build with `npm run preview`.
+---
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
